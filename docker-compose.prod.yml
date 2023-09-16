@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80" # Map port 80 in the container to port 80 on the host
+    environment:
+      - REACT_APP_API_URL=http://backend:80 # Assuming your API runs on port 80 in the container
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80" # Map port 80 in the container to port 80 on the host
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=mydb;User=myuser;Password=mypassword
+
+  mysql:
+    image: mysql:5.7
+    ports:
+      - "3306:3306" # Map port 3306 in the container to port 3306 on the host
+    env_file: .env # Env path goes here
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+
+  nginx:
+    build:
+      context: ./web-server
+    ports:
+      - "80:80" # Map port 80 in the container to port 80 on the host
+    depends_on:
+      - frontend
+      - backend
