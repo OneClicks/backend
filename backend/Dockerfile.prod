@@ -1,0 +1,30 @@
+# Build Stage
+FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
+
+# Set working directory
+WORKDIR /src
+
+# Copy the .csproj and restore any dependencies (for caching)
+COPY *.csproj ./
+RUN dotnet restore
+
+# Copy the rest of the application code
+COPY ./ ./
+
+# Build the application
+RUN dotnet publish -c Release -o /app/publish
+
+# Production Stage
+FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS production
+
+# Set working directory
+WORKDIR /app
+
+# Copy the published app from the build stage
+COPY --from=build /app/publish ./
+
+# Expose port 80
+EXPOSE 80
+
+# Run the application
+CMD ["dotnet", "backend.dll"]
