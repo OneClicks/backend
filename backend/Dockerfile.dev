@@ -1,0 +1,14 @@
+# Development Stage
+FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS development
+
+# Set working directory
+WORKDIR /app
+
+# Copy the compiled .NET app
+COPY ./bin/Debug/net5.0/publish ./
+
+# Expose port 80
+EXPOSE 80
+
+# Run the app
+CMD ["dotnet", "backend.dll"]
