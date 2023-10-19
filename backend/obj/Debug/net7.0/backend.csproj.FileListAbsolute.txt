@@ -1,0 +1,7 @@
+D:\FYP\OneClicks\backend\obj\Debug\net7.0\backend.csproj.AssemblyReference.cache
+D:\FYP\OneClicks\backend\obj\Debug\net7.0\backend.GeneratedMSBuildEditorConfig.editorconfig
+D:\FYP\OneClicks\backend\obj\Debug\net7.0\backend.AssemblyInfoInputs.cache
+D:\FYP\OneClicks\backend\obj\Debug\net7.0\backend.AssemblyInfo.cs
+D:\FYP\OneClicks\backend\obj\Debug\net7.0\backend.csproj.CoreCompileInputs.cache
+D:\FYP\OneClicks\backend\obj\Debug\net7.0\backend.MvcApplicationPartsAssemblyInfo.cs
+D:\FYP\OneClicks\backend\obj\Debug\net7.0\backend.MvcApplicationPartsAssemblyInfo.cache
