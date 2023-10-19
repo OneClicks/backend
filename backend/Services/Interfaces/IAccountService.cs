@@ -7,7 +7,7 @@ namespace backend.Services.Interfaces
     public interface IAccountService
     {
         Task<ResponseVM<Users>> SignUpService(RegisterDto registerDto);
-        //Task<ResponseVM<UserDto>> LoginService(LoginDto loginDto);
+        Task<ResponseVM<UserDto>> LoginService(LoginDto loginDto);
         //Task<ResponseVM<UserDto>> VerificationService(Token token);
         //Task<ResponseVM<UserDto>> ForgetPasswordService(ForgetPasswordDto forgetPassword);
         //Task<ResponseVM<UserDto>> ResetPasswordService(PasswordResetDto passwordReset);

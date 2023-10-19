@@ -55,93 +55,93 @@ namespace backend.Controllers
             }
 
         }
-        [HttpPost("verify")]
-        public async Task<ActionResult<ResponseVM<UserDto>>> Verify(Token token)
-        {
-            try
-            {
-                var data = await _accountService.VerificationService(token);
-                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
-                return Ok(data);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString().Substring(0, 50));
-                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
-                return StatusCode(503, "An error occurred while verifying the user.");
-            }
-        }
+        //[HttpPost("verify")]
+        //public async Task<ActionResult<ResponseVM<UserDto>>> Verify(Token token)
+        //{
+        //    try
+        //    {
+        //        var data = await _accountService.VerificationService(token);
+        //        _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+        //        return Ok(data);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.ToString().Substring(0, 50));
+        //        _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+        //        return StatusCode(503, "An error occurred while verifying the user.");
+        //    }
+        //}
 
-        [HttpPost("forgetPassword")]
-        //[Authorize(Policy = "ApiKeyPolicy")]
-        public async Task<ActionResult<ResponseVM<UserDto>>> Forget(ForgetPasswordDto forgetPassword)
-        {
-            try
-            {
-                var data = await _accountService.ForgetPasswordService(forgetPassword);
-                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
-                return Ok(data);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
-                return StatusCode(503, "An error occurred while ForgetPassword Service.");
-            }
-        }
+        //[HttpPost("forgetPassword")]
+        ////[Authorize(Policy = "ApiKeyPolicy")]
+        //public async Task<ActionResult<ResponseVM<UserDto>>> Forget(ForgetPasswordDto forgetPassword)
+        //{
+        //    try
+        //    {
+        //        var data = await _accountService.ForgetPasswordService(forgetPassword);
+        //        _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+        //        return Ok(data);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.ToString());
+        //        _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+        //        return StatusCode(503, "An error occurred while ForgetPassword Service.");
+        //    }
+        //}
 
-        [HttpPost("resetPassword")]
-        //[Authorize(Policy = "ApiKeyPolicy")]
-        public async Task<ActionResult<ResponseVM<UserDto>>> Reset(PasswordResetDto resetDto)
-        {
-            try
-            {
-                var data = await _accountService.ResetPasswordService(resetDto);
-                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
-                return Ok(data);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
-                return StatusCode(503, "An error occurred while resetting password");
-            }
-        }
+        //[HttpPost("resetPassword")]
+        ////[Authorize(Policy = "ApiKeyPolicy")]
+        //public async Task<ActionResult<ResponseVM<UserDto>>> Reset(PasswordResetDto resetDto)
+        //{
+        //    try
+        //    {
+        //        var data = await _accountService.ResetPasswordService(resetDto);
+        //        _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+        //        return Ok(data);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.ToString());
+        //        _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+        //        return StatusCode(503, "An error occurred while resetting password");
+        //    }
+        //}
 
-        [HttpPost("newPassword")]
-        //[Authorize(Policy = "ApiKeyPolicy")]
-        public async Task<ActionResult<ResponseVM<UserDto>>> NewPassword(NewPasswordDto resetDto)
-        {
-            try
-            {
-                var data = await _accountService.NewPasswordService(resetDto);
-                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
-                return Ok(data);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
-                return StatusCode(503, "An error occurred while creating new password");
-            }
-        }
+        //[HttpPost("newPassword")]
+        ////[Authorize(Policy = "ApiKeyPolicy")]
+        //public async Task<ActionResult<ResponseVM<UserDto>>> NewPassword(NewPasswordDto resetDto)
+        //{
+        //    try
+        //    {
+        //        var data = await _accountService.NewPasswordService(resetDto);
+        //        _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+        //        return Ok(data);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.ToString());
+        //        _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+        //        return StatusCode(503, "An error occurred while creating new password");
+        //    }
+        //}
 
-        //[Authorize]
-        [HttpPost("changePassword")]
-        public async Task<ActionResult<ResponseVM<UserDto>>> ChangePassword(ChangePasswordDto changePasswordDto)
-        {
-            try
-            {
-                var data = await _accountService.ChangePasswordService(changePasswordDto);
-                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
-                return Ok(data);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
-                return StatusCode(503, "An error occurred while change password");
-            }
-        }
+        ////[Authorize]
+        //[HttpPost("changePassword")]
+        //public async Task<ActionResult<ResponseVM<UserDto>>> ChangePassword(ChangePasswordDto changePasswordDto)
+        //{
+        //    try
+        //    {
+        //        var data = await _accountService.ChangePasswordService(changePasswordDto);
+        //        _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+        //        return Ok(data);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.ToString());
+        //        _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+        //        return StatusCode(503, "An error occurred while change password");
+        //    }
+        //}
     }
 }
