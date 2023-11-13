@@ -1,20 +1,24 @@
 {
   "format": 1,
   "restore": {
-    "D:\\FYP\\OneClicks\\backend\\backend.csproj": {}
+    "C:\\Users\\saif.islam\\Projects\\OneClicksNewFolder\\OneClicks\\backend.csproj": {}
   },
   "projects": {
-    "D:\\FYP\\OneClicks\\backend\\backend.csproj": {
+    "C:\\Users\\saif.islam\\Projects\\OneClicksNewFolder\\OneClicks\\backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\FYP\\OneClicks\\backend\\backend.csproj",
+        "projectUniqueName": "C:\\Users\\saif.islam\\Projects\\OneClicksNewFolder\\OneClicks\\backend.csproj",
         "projectName": "backend",
-        "projectPath": "D:\\FYP\\OneClicks\\backend\\backend.csproj",
-        "packagesPath": "C:\\Users\\dell\\.nuget\\packages\\",
-        "outputPath": "D:\\FYP\\OneClicks\\backend\\obj\\",
+        "projectPath": "C:\\Users\\saif.islam\\Projects\\OneClicksNewFolder\\OneClicks\\backend.csproj",
+        "packagesPath": "C:\\Users\\saif.islam\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\saif.islam\\Projects\\OneClicksNewFolder\\OneClicks\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "C:\\Users\\dell\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\saif.islam\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -22,6 +26,7 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -88,7 +93,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.402\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.402\\RuntimeIdentifierGraph.json"
         }
       }
     }

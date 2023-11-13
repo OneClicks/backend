@@ -1,2 +1,0 @@
-# OneClicks
-Source code, OneClicks
