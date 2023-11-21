@@ -26,9 +26,9 @@ namespace backend.Services
                 using var client = new SmtpClient();
                 try
                 {
-                    client.Connect("smtp.google.com", 465, true);
+                    client.Connect("smtp.4dmagic.pk", 465, true);
                     client.AuthenticationMechanisms.Remove("XOAUTH2");
-                    client.Authenticate("umerfarooqnu@gmail.com", "Whiterose420");
+                    client.Authenticate("u.farooq@4dmagic.pk", "Whiterose420");
 
                     client.Send(emailMessage);
 
@@ -47,7 +47,7 @@ namespace backend.Services
             private MimeMessage CreateEmailMessage(Message message)
             {
                 var emailMessage = new MimeMessage();
-                emailMessage.From.Add(new MailboxAddress("OneClicks - UmerFarooq", "umerfarooqnu@gmail.com"));
+                emailMessage.From.Add(new MailboxAddress("OneClicks - UmerFarooq", "u.farooq@4dmagic.pk"));
                 emailMessage.To.AddRange(message.To);
                 emailMessage.Subject = message.Subject;
                 emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Text)
