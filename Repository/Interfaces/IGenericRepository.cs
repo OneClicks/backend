@@ -9,7 +9,7 @@ namespace backend.Repository.Interfaces
         Task<T> ExistsOnly(FilterDefinition<T> filter);
         Task<UpdateResult> UpdateOnly(FilterDefinition<T> filter, UpdateDefinition<T> update);
         Task<List<T>> FetchAll();
-        Task<bool> RemoveById(FilterDefinition<T> filter)
+        Task<bool> RemoveById(FilterDefinition<T> filter);
 
     }
 }
