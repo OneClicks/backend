@@ -9,6 +9,16 @@
     }
   },
   "profiles": {
+    "OneClicks": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "applicationUrl": "http://10.11.69.33:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
     "backend": {
       "commandName": "Project",
       "dotnetRunMessages": true,
