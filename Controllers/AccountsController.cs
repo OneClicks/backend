@@ -2,6 +2,7 @@
 using backend.Entities;
 using backend.Services.Interfaces;
 using backend.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers
@@ -37,7 +38,7 @@ namespace backend.Controllers
                 return StatusCode(503, "An error occurred while registering the user.");
             }
         }
-
+     
         [HttpPost("login")]
         public async Task<ActionResult<ResponseVM<UserDto>>> Login(LoginDto loginDto)
         {

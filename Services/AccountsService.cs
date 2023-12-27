@@ -50,7 +50,7 @@ namespace backend.Services
 
             // Insert the user into MongoDB
             user = await _userRepository.Create(user);
-            string clientUrl = "https://mbotui.azurewebsites.net/verify";
+            string clientUrl = "https://oneclicks.azurewebsites.net/account/verify";
 
             string VerifyUrl = $"{clientUrl}?token={HttpUtility.UrlEncode(vToken)}";
             // Sending Email
@@ -128,10 +128,7 @@ namespace backend.Services
             return new ResponseVM<UserDto>("200", "Successfully verified!");
         }
 
-        //public Task<ViewModels.ResponseVM<UserDto>> ChangePasswordService(ChangePasswordDto passwordReset)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        
 
         public async Task<ResponseVM<UserDto>> ForgetPasswordService(ForgetPasswordDto forgetPassword)
         {
@@ -144,12 +141,12 @@ namespace backend.Services
             string token = HelperFunctions.CreateRandomToken();
 
             var update = Builders<Users>.Update.Set(u => u.PasswordResetToken, token)
-                .Set(u => u.PasswordResetTokenExpires, DateTime.Now.AddMinutes(60));
+                .Set(u => u.PasswordResetTokenExpires, DateTime.UtcNow.AddHours(7));
 
             var response = await _userRepository.UpdateOnly(filter, update);
             if (response.ModifiedCount > 0)
             {
-                string clientUrl = "https://mbotui.azurewebsites.net/reset-password";
+                string clientUrl = "https://oneclicks.azurewebsites.net/reset-password";
 
                 string resetPasswordUrl = $"{clientUrl}?token={HttpUtility.UrlEncode(token)}";
 
@@ -169,10 +166,6 @@ namespace backend.Services
 
 
 
-        //public Task<ViewModels.ResponseVM<UserDto>> NewPasswordService(NewPasswordDto passwordReset)
-        //{
-        //    throw new NotImplementedException();
-        //}
 
         public  async Task<ResponseVM<UserDto>> ResetPasswordService(PasswordResetDto passwordReset)
         {
@@ -182,7 +175,7 @@ namespace backend.Services
             if (user == null)
                 return new ResponseVM<UserDto>("400", "Bad Request: Invalid Token!");
 
-            if (user.PasswordResetTokenExpires < DateTime.Now)
+            if (user.PasswordResetTokenExpires < DateTime.UtcNow)
                 return new ResponseVM<UserDto>("401", "Bad Request: Token is Expired!");
 
             using var hmac = new HMACSHA512();

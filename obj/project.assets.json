@@ -1599,19 +1599,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\umera\\.nuget\\packages\\": {}
+    "C:\\Users\\Umer Farooq\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\FYP\\Backend\\backend.csproj",
+      "projectUniqueName": "D:\\FYP\\backend.csproj",
       "projectName": "backend",
-      "projectPath": "C:\\FYP\\Backend\\backend.csproj",
-      "packagesPath": "C:\\Users\\umera\\.nuget\\packages\\",
-      "outputPath": "C:\\FYP\\Backend\\obj\\",
+      "projectPath": "D:\\FYP\\backend.csproj",
+      "packagesPath": "C:\\Users\\Umer Farooq\\.nuget\\packages\\",
+      "outputPath": "D:\\FYP\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\umera\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Umer Farooq\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
