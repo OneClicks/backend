@@ -111,16 +111,15 @@ namespace backend.Controllers
                 return StatusCode(503, "An error occurred while resetting password");
             }
         }
-        [HttpGet]
+      //  [HttpGet]
         //[Authorize(Policy = "ApiKeyPolicy")]
 
-        [HttpGet]
+        [HttpGet("getAdAccountData")]
         //[Authorize(Policy = "ApiKeyPolicy")]
-        public async Task<IActionResult> Test()
+        public async Task<ActionResult> getAdAccountData([FromQuery]string accessToken)
         {
             try
             {
-                var accessToken = "EAAKbj1ZAaEcgBO4FIZC5DjYYGP7uPNJZCI626YIHftkACjL4cPTlvodihOCNWaYIk5j7XRiY8PZA2TDyx0AKsD2T5N8ZBu1zQwU3YnRoxT0FPAE7e7rUD9s9SrCEfnthqmONuBilV1eQY5lVinYGEvcslyOQkJKMHg1XGpb2bO8fGAOSVUlOJatwYct1ZBClxRagpKlx3litlQWXyb0Q06tqYnnLZBF";
                 var adAccountId = "1295877481040276";
                var res= await _facebookService.GetAdAccountsData(accessToken);
                 //var res = await _facebookService.CreateCampaignAsync(accessToken, adAccountId);
