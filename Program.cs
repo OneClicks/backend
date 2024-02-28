@@ -4,11 +4,14 @@ using backend.Services.API.Services;
 using backend.Services.Interfaces;
 using backend.Services;
 using backend.Extensions;
+using backend.Configurations;
+using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+builder.Services.Configure<FacebookApiOptions>(builder.Configuration.GetSection("FacebookApi"));
+builder.Services.AddHttpClient<FacebookApiService>();
 builder.Services.AddControllers();
 
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -19,8 +22,11 @@ builder.Services.AddJWTServices(builder.Configuration);
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
 // services
+
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAccountService, AccountsService>();
+builder.Services.AddScoped<IFB, FacebookApiService>();
+
 builder.Services.AddScoped<IEmailService, EmailService>();
 //cors
 
