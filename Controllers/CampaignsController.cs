@@ -22,7 +22,7 @@ namespace backend.Controllers
             _logger = logger;
         }
 
-        [HttpPost("Create")]
+        [HttpPost("CreateCampaign")]
         //[Authorize(Policy = "ApiKeyPolicy")]
         public async Task<ActionResult<ResponseVM<Users>>> CreateCampaign(CampaignDto campaign)
         {
