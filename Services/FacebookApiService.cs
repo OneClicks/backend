@@ -27,14 +27,24 @@ namespace backend.Services
         {
             try
             {
-                var url = $"https://graph.facebook.com/{_facebookApiOptions.GraphApiVersion}/act_{campaign.Ad_accountId}/campaigns";
-                
-                var formData = new MultipartFormDataContent();
-                formData.Add(new StringContent(campaign.CampaignName), "name");
-                formData.Add(new StringContent(campaign.Objective), "objective");
-                formData.Add(new StringContent(campaign.Status), "status");
-                formData.Add(new StringContent(campaign.SpecialAdCategories.ToString()), "special_ad_categories");
-                formData.Add(new StringContent(campaign.AccessToken), "access_token");
+                var adAccountId = "1295877481040276";
+                var accessToken= "EAAKbj1ZAaEcgBO6ZB9LAar9LdIphDG5TpxAePWZCUqFxWiVaBzpc01ruQoLKTBib8kUZA0ZCc6bzSYXZAJpGDaITIXXBZCzCc5Ww3HoalNcnZB12ACCmhSNwVBHHJusSUjcxZB6ZBESVes7mjZAQC2Cx5JRaVgXVJxZBPHQTM4rHrs2e2E48CA06gV0z63slsJ0ybmlbOsn2qWLiqdIgtlZCWjwZDZD";
+                var url = $"https://graph.facebook.com/v19.0/act_{adAccountId}/campaigns"; 
+                var formData = new MultipartFormDataContent(); 
+                formData.Add(new StringContent("My campaign"), "name"); 
+                formData.Add(new StringContent("OUTCOME_TRAFFIC"), "objective"); 
+                formData.Add(new StringContent("PAUSED"), "status");
+                formData.Add(new StringContent("[]"), "special_ad_categories"); 
+                formData.Add(new StringContent(accessToken), "access_token");
+
+              //  var url = $"https://graph.facebook.com/v19.0/act_{campaign.Ad_accountId}/campaigns";
+             //   campaign.AccessToken = "EAAKbj1ZAaEcgBO6OQLPWFZAa3ttZAI0UewZBxuZAvcLlBkbZA0HjQhOvjKcTVmBiygrZAKqxdrYMIc7gw9gZC5J5YuV5Vmft4OunJhS0fYIuFJceV8cZBLCYIFwwOdboHeBI4uaMWVF1mboWluLCV9Pp6mXae1evUcV9F1XTuaCQuod9VebJTciiQhyLsFQZDZD";
+             //   var formData = new MultipartFormDataContent();
+             //   formData.Add(new StringContent(campaign.CampaignName), "name");
+             //   formData.Add(new StringContent(campaign.Objective), "objective");
+             //   formData.Add(new StringContent(campaign.Status), "status");
+             //   formData.Add(new StringContent(campaign.SpecialAdCategories.ToString()), "special_ad_categories");
+             //   formData.Add(new StringContent(campaign.AccessToken), "access_token");
                 
 
                 var response = await _httpClient.PostAsync(url, formData);
