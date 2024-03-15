@@ -22,6 +22,7 @@ namespace backend.Controllers
             _logger = logger;
         }
 
+
         [HttpPost("CreateCampaign")]
         //[Authorize(Policy = "ApiKeyPolicy")]
         public async Task<ActionResult<ResponseVM<Users>>> CreateCampaign(CampaignDto campaign)
@@ -29,6 +30,40 @@ namespace backend.Controllers
             try
             {
                 var data = await _facebookService.CreateCampaignAsync(campaign);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString().Substring(0, 50));
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred while registering the user.");
+            }
+        }
+
+        [HttpGet("GetAllCampaigns")]
+        public async Task<ActionResult<ResponseVM<Campaigns>>> GetAllCampaigns()
+        {
+            try
+            {
+                var data = await _facebookService.GetAllCampaigns(); 
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred fetching all categories");
+            }
+        }
+        [HttpPost("CreateAdset")]
+        //[Authorize(Policy = "ApiKeyPolicy")]
+        public async Task<ActionResult<ResponseVM<Users>>> CreateAdset()
+        {
+            try
+            {
+                var data = await _facebookService.CreateAdSet();
                 _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
             }
