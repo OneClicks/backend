@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\FYP\\backend.csproj": {}
+    "D:\\OneClicks\\Backend-Oneclicks\\backend.csproj": {}
   },
   "projects": {
-    "D:\\FYP\\backend.csproj": {
+    "D:\\OneClicks\\Backend-Oneclicks\\backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\FYP\\backend.csproj",
+        "projectUniqueName": "D:\\OneClicks\\Backend-Oneclicks\\backend.csproj",
         "projectName": "backend",
-        "projectPath": "D:\\FYP\\backend.csproj",
+        "projectPath": "D:\\OneClicks\\Backend-Oneclicks\\backend.csproj",
         "packagesPath": "C:\\Users\\Umer Farooq\\.nuget\\packages\\",
-        "outputPath": "D:\\FYP\\obj\\",
+        "outputPath": "D:\\OneClicks\\Backend-Oneclicks\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Umer Farooq\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -88,7 +88,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.100\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.101\\RuntimeIdentifierGraph.json"
         }
       }
     }
