@@ -37,7 +37,7 @@ namespace backend.Controllers
             {
                 Console.WriteLine(ex.ToString().Substring(0, 50));
                 _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
-                return StatusCode(503, "An error occurred while registering the user.");
+                return StatusCode(503, "An error occurred while creating campaigns.");
             }
         }
 
@@ -59,11 +59,11 @@ namespace backend.Controllers
         }
         [HttpPost("CreateAdset")]
         //[Authorize(Policy = "ApiKeyPolicy")]
-        public async Task<ActionResult<ResponseVM<Users>>> CreateAdset()
+        public async Task<ActionResult<ResponseVM<Adset>>> CreateAdset(AdsetDto adset)
         {
             try
             {
-                var data = await _facebookService.CreateAdSet();
+                var data = await _facebookService.CreateAdSet(adset);
                 _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
             }
