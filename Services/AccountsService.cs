@@ -146,7 +146,7 @@ namespace backend.Services
             var response = await _userRepository.UpdateOnly(filter, update);
             if (response.ModifiedCount > 0)
             {
-                string clientUrl = "https://oneclicks.azurewebsites.net/reset-password";
+                string clientUrl = "https://oneclicks.azurewebsites.net/account/reset-password";
 
                 string resetPasswordUrl = $"{clientUrl}?token={HttpUtility.UrlEncode(token)}";
 

@@ -13,12 +13,15 @@ namespace backend.Controllers
     {
         private readonly IAccountService _accountService;
         private readonly ILogger<AccountsController> _logger;
+        private readonly IFB _facebookService;
         public AccountsController(IAccountService accountService,
             ILogger<AccountsController> Logger
-            )
+,
+            IFB facebookService)
         {
             _accountService = accountService;
             _logger = Logger;
+            _facebookService = facebookService;
         }
 
         [HttpPost("register")]
@@ -106,6 +109,28 @@ namespace backend.Controllers
                 Console.WriteLine(ex.ToString());
                 _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
                 return StatusCode(503, "An error occurred while resetting password");
+            }
+        }
+      //  [HttpGet]
+        //[Authorize(Policy = "ApiKeyPolicy")]
+
+        [HttpGet("getAdAccountData")]
+        //[Authorize(Policy = "ApiKeyPolicy")]
+        public async Task<ActionResult> getAdAccountData([FromQuery]string accessToken)
+        {
+            try
+            {
+                var adAccountId = "1295877481040276";
+               var res= await _facebookService.GetAdAccountsData(accessToken);
+                //var res = await _facebookService.CreateCampaignAsync(accessToken, adAccountId);
+
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred while creating a campaign");
             }
         }
 
