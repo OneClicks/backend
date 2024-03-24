@@ -169,7 +169,7 @@ namespace backend.Services
             return JsonSerializer.Serialize(targetingSpec);
         }
 
-        public async Task<ResponseVM<string>> CreateAdSet()
+        public async Task<ResponseVM<string>> CreateAdSet(AdsetDto adset)
         {
             var accessToken = "EAAKbj1ZAaEcgBO3yYvqRazffDMELK32LyMscrWSjkyzuwTLjVv8ZBhjC1NzPmvUgEteKyOi0yZA3jmTHEFZBPxvdFY3UJZBxsS3nkCB0dlxQvZARrJntOys7txbFgx7ajdd2eMZCMgiv1ZCW2E8ZCEZChckmSI0alBjn074ve8ioD4uDai3IHw9SUbDEy1";
             var adAccountId = "1295877481040276";
