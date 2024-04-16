@@ -21,6 +21,23 @@ namespace backend.Controllers
             _facebookService = facebookService;
             _logger = logger;
         }
+        [HttpPost("test")]
+        //[Authorize(Policy = "ApiKeyPolicy")]
+        public async Task<ActionResult<ResponseVM<Users>>> Test(CampaignDto campaign)
+        {
+            try
+            {
+                var data = await _facebookService.CreateCampaignAsync(campaign);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString().Substring(0, 50));
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred while creating campaigns.");
+            }
+        }
 
 
         [HttpPost("CreateCampaign")]

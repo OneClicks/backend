@@ -12,6 +12,7 @@ using backend.DTOs;
 using backend.Entities;
 using backend.Repository.Interfaces;
 using MongoDB.Driver;
+using MongoDB.Bson.IO;
 
 
 namespace backend.Services
@@ -150,6 +151,64 @@ namespace backend.Services
 
             return content;
         }
+        public async Task UploadFile(string imagePath, string accessToken, string adAccountId)
+        {
+            using (var httpClient = new HttpClient())
+            {
+                var formData = new MultipartFormDataContent();
+                var fileStream = File.OpenRead(imagePath);
+                formData.Add(new StreamContent(fileStream), "filename", Path.GetFileName(imagePath));
+                formData.Add(new StringContent(accessToken), "access_token");
+
+                var url = $"https://graph.facebook.com/v2.11/act_{adAccountId}/adimages";
+
+                var response = await httpClient.PostAsync(url, formData);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception($"Failed to upload file. Status code: {response.StatusCode}");
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(responseContent);
+            }
+        }
+
+        public async Task<string> CreateAdCreative(string accessToken, string adAccountId, string pageId, string imageHash)
+        {
+            using (var httpClient = new HttpClient())
+            {
+                var url = $"https://graph.facebook.com/v19.0/act_{adAccountId}/adcreatives";
+
+
+                var objectStorySpec = new
+                {
+                    page_id = pageId,
+                    link_data = new
+                    {
+                        image_hash = imageHash,
+                        link = $"https://facebook.com/{pageId}",
+                        message = "try it out"
+                    }
+                };
+
+                var jsonSpec = JsonSerializer.Serialize(objectStorySpec);
+                var formData = new MultipartFormDataContent();
+                formData.Add(new StringContent("Sample Creative"), "name");
+                formData.Add(new StringContent(jsonSpec), "object_story_spec");
+                formData.Add(new StringContent(accessToken), "access_token");
+
+                var response = await httpClient.PostAsync(url, formData);
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception($"Failed to create ad creative. Status code: {response.StatusCode}");
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                return responseContent;
+            }
+        }
+
 
         public string CreateTargetingSpec(string countriesResponse, string interestsResponse)
         {
@@ -158,12 +217,12 @@ namespace backend.Services
 
             // Parse the interestsResponse to get the interest ID
             var interestsData = JsonSerializer.Deserialize<dynamic>(interestsResponse);
-            var interests = new List<Interest> { new Interest { Id = interestsData.id, Name = interestsData.name } };
+            var interests = new List<Interest> { new Interest { id = interestsData.id, name = interestsData.name } };
 
             var targetingSpec = new Targeting
             {
-                Geo_Locations = new GeoLocations { Countries = countries },
-                Interests = interests
+                geo_locations = new GeoLocations { countries = countries },
+                interests = interests
             };
 
             return JsonSerializer.Serialize(targetingSpec);
@@ -171,22 +230,22 @@ namespace backend.Services
 
         public async Task<ResponseVM<string>> CreateAdSet(AdsetDto adset)
         {
-            var accessToken = "EAAKbj1ZAaEcgBO3yYvqRazffDMELK32LyMscrWSjkyzuwTLjVv8ZBhjC1NzPmvUgEteKyOi0yZA3jmTHEFZBPxvdFY3UJZBxsS3nkCB0dlxQvZARrJntOys7txbFgx7ajdd2eMZCMgiv1ZCW2E8ZCEZChckmSI0alBjn074ve8ioD4uDai3IHw9SUbDEy1";
+            var accessToken = "EAAKbj1ZAaEcgBOwTbKa9g3Kq2YQcqV8ZCw5tXhv0muv5q0dnzwjPEBXyL7ZCZBB42AcTOZBlEeP8GOVZCOzeZBg9BKbvKZB4xZAMGTGu3CvoA8EyI2vyVzR4y7cnvsEbpyThfQ1H2dabq4IJHwM0lpZBsbutmZBjsvNWJZAaMGsioOMmAHHZCgzjWZAbwFTbtS";
             var adAccountId = "1295877481040276";
-            var campaignId = "120206143859950113";
+            var campaignId = "120207131647270113";
             var interestsResponse = await GetInterests(accessToken, "movie");
             using JsonDocument document = JsonDocument.Parse(interestsResponse);
             var interest = document.RootElement.GetProperty("data").EnumerateArray().First();
 
             // Assume we have extracted the country code from the countriesResponse
             var countries = new List<string> { "BA" };
-
-            var interests = new List<Interest> { new Interest { Id = interest.GetProperty("id").GetInt64(), Name = interest.GetProperty("name").GetString() } };
+            var temp = interest.GetProperty("id").ToString();
+            var interests = new List<Interest> { new Interest { id = long.Parse(temp), name = interest.GetProperty("name").GetString() } };
 
             var targetingSpec = new Targeting
             {
-                Geo_Locations = new GeoLocations { Countries = countries },
-                Interests = interests
+                geo_locations = new GeoLocations { countries = countries },
+                interests = interests
             };
 
             var targetingJson = JsonSerializer.Serialize(targetingSpec);
@@ -198,12 +257,13 @@ namespace backend.Services
             formData.Add(new StringContent("REACH"), "optimization_goal");
             formData.Add(new StringContent("IMPRESSIONS"), "billing_event");
             formData.Add(new StringContent("2"), "bid_amount");
-            formData.Add(new StringContent("1000"), "daily_budget");
+            formData.Add(new StringContent("10000000"), "daily_budget");
             formData.Add(new StringContent(campaignId), "campaign_id");
             formData.Add(new StringContent(targetingJson), "targeting");
-            formData.Add(new StringContent("2020-10-06T04:45:17+0000"), "start_time");
+            formData.Add(new StringContent("2024-10-06T04:45:17+0000"), "start_time");
             formData.Add(new StringContent("PAUSED"), "status");
             formData.Add(new StringContent(accessToken), "access_token");
+
 
             using (var httpClient = new HttpClient())
             {
@@ -215,9 +275,14 @@ namespace backend.Services
                 }
 
                 var content = await response.Content.ReadAsStringAsync();
-                return new ResponseVM<string>("200", " Created adset", content);
+
+                
 
             }
+
+                await UploadFile("D:\\4DMagic\\files\\KaDeWe_Haus_erweitert.jpg", accessToken, adAccountId);
+                await CreateAdCreative(accessToken, adAccountId, "147986631741136", "26cbab3335891860d4c05066299f01f4");
+            return new ResponseVM<string>("200", "Success");
         }
 
         public async Task<string> GetLongLivedToken(string accessToken)
