@@ -32,18 +32,18 @@ namespace backend.DTOs
 
     public class Interest
     {
-        public long Id { get; set; }
-        public string Name { get; set; }
+        public long id { get; set; }
+        public string name { get; set; }
     }
 
     public class Targeting
     {
-        public GeoLocations Geo_Locations { get; set; }
-        public List<Interest> Interests { get; set; }
+        public GeoLocations geo_locations { get; set; }
+        public List<Interest> interests { get; set; }
     }
 
     public class GeoLocations
     {
-        public List<string> Countries { get; set; }
+        public List<string> countries { get; set; }
     }
 }
