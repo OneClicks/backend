@@ -91,5 +91,29 @@ namespace backend.Controllers
                 return StatusCode(503, "An error occurred while registering the user.");
             }
         }
+
+        [HttpPost("CreateAd")]
+        //[Authorize(Policy = "ApiKeyPolicy")]
+        public async Task<ActionResult<ResponseVM<Adset>>> CreateAd(AdDto ad)
+        {
+            try
+            {
+                var accessToken = "EAAKbj1ZAaEcgBOZCnYWbghZCR2tIBvjeHbsJsvwKZANvYWQZBBT9ZC7g3PAbJyrestgddPxK1ZCsjeVKEwdrvvKZCNiZAuf2ZASUurzWXSvZC2bR373WAmYdC0dmgC2PoDbr8cxFgQuuLDwWBKzgk8Aq3RZArONgdVXLjlidrM68KrZCYfjGZAbijZAzMuMtgJFwrFgYkt3gLhNvFULQQVJMgnMiAZDZD";
+                var adAccountId = "575670381167089";
+                var adsetId = "120208487872970298";
+                var adsetName = "My Ad Set";
+                var creativeId = "120208495956050298";
+
+                var data = await _facebookService.ScheduleDelivery(accessToken, adAccountId, adsetId, adsetName, creativeId);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString().Substring(0, 50));
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred while creating ad.");
+            }
+        }
     }
 }

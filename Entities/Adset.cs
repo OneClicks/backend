@@ -36,7 +36,7 @@ namespace backend.Entities
         public string Interests { get; set; }
 
         [BsonElement("StartTime")]
-        public int StartTime { get; set; }
+        public string StartTime { get; set; }
 
         [BsonElement("Status")]
         public string Status { get; set; }
