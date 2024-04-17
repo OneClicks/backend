@@ -13,6 +13,8 @@ using backend.Entities;
 using backend.Repository.Interfaces;
 using MongoDB.Driver;
 using MongoDB.Bson.IO;
+using backend.Services.API.Services;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 
 
 namespace backend.Services
@@ -34,17 +36,19 @@ namespace backend.Services
         {
             try
             {
+               // var accessToken = "EAAKbj1ZAaEcgBO4j4gdRrBDjHsaAghpIkPGsGd5hotDqCNnPvSaGCl3F6gt8A8LNqaypZAS1f2TcFjDhwQNqE2ZApLoccM7HhZB0edkAnOd823xrB9vvjvfYHCmZBXd9AFn5Sa88Db6LBWy3Oso0LyUZAZBng4hvY24YSfjtHgw1aFXbX3w6Jmd7RZA9dU1irIJ2cr831FIk";
+            //var adAccountId = "384411250810651";
                // var adAccountId = "1295877481040276";
                 //var accessToken= "EAAKbj1ZAaEcgBO6ZB9LAar9LdIphDG5TpxAePWZCUqFxWiVaBzpc01ruQoLKTBib8kUZA0ZCc6bzSYXZAJpGDaITIXXBZCzCc5Ww3HoalNcnZB12ACCmhSNwVBHHJusSUjcxZB6ZBESVes7mjZAQC2Cx5JRaVgXVJxZBPHQTM4rHrs2e2E48CA06gV0z63slsJ0ybmlbOsn2qWLiqdIgtlZCWjwZDZD";
-                //var url = $"https://graph.facebook.com/v19.0/act_{adAccountId}/campaigns"; 
-                //var formData = new MultipartFormDataContent(); 
-                //formData.Add(new StringContent("My campaign"), "name"); 
-                //formData.Add(new StringContent("OUTCOME_TRAFFIC"), "objective"); 
-                //formData.Add(new StringContent("PAUSED"), "status");
-                //formData.Add(new StringContent("[]"), "special_ad_categories"); 
-                //formData.Add(new StringContent(accessToken), "access_token");
+  /*              var url = $"https://graph.facebook.com/v19.0/act_{adAccountId}/campaigns"; 
+                var formData = new MultipartFormDataContent(); 
+                formData.Add(new StringContent("My campaign"), "name"); 
+                formData.Add(new StringContent("OUTCOME_TRAFFIC"), "objective"); 
+                formData.Add(new StringContent("PAUSED"), "status");
+                formData.Add(new StringContent("[]"), "special_ad_categories"); 
+                formData.Add(new StringContent(accessToken), "access_token");*/
 
-                var url = $"https://graph.facebook.com/v19.0/act_{campaign.Ad_accountId}/campaigns";
+                var url = $"https://graph.facebook.com/v19.0/act_{campaign.AdAccountId}/campaigns";
                 //campaign.AccessToken = "EAAKbj1ZAaEcgBO6OQLPWFZAa3ttZAI0UewZBxuZAvcLlBkbZA0HjQhOvjKcTVmBiygrZAKqxdrYMIc7gw9gZC5J5YuV5Vmft4OunJhS0fYIuFJceV8cZBLCYIFwwOdboHeBI4uaMWVF1mboWluLCV9Pp6mXae1evUcV9F1XTuaCQuod9VebJTciiQhyLsFQZDZD";
                 var formData = new MultipartFormDataContent();
                 formData.Add(new StringContent(campaign.CampaignName), "name");
@@ -65,7 +69,7 @@ namespace backend.Services
                     CampaignName = campaign.CampaignName,
                     Objective = campaign.Objective,
                     AccessToken = campaign.AccessToken,
-                    AdAccountId = campaign.Ad_accountId,
+                    AdAccountId = campaign.AdAccountId,
                     SpecialAdCategories = campaign.SpecialAdCategories,
                     Status = campaign.Status
                 };
@@ -151,7 +155,7 @@ namespace backend.Services
 
             return content;
         }
-        public async Task UploadFile(string imagePath, string accessToken, string adAccountId)
+        public async Task<string> UploadFile(string imagePath, string accessToken, string adAccountId)
         {
             using (var httpClient = new HttpClient())
             {
@@ -160,7 +164,7 @@ namespace backend.Services
                 formData.Add(new StreamContent(fileStream), "filename", Path.GetFileName(imagePath));
                 formData.Add(new StringContent(accessToken), "access_token");
 
-                var url = $"https://graph.facebook.com/v2.11/act_{adAccountId}/adimages";
+                var url = $"https://graph.facebook.com/v19.0/act_{adAccountId}/adimages";
 
                 var response = await httpClient.PostAsync(url, formData);
 
@@ -171,34 +175,94 @@ namespace backend.Services
 
                 var responseContent = await response.Content.ReadAsStringAsync();
                 Console.WriteLine(responseContent);
+                var imageData = JsonSerializer.Deserialize<dynamic>(responseContent);
+                var imageHash = new
+                {
+                    Hash = imageData.images["picture.png"].hash.ToString()
+                };
+                // Extract the image hash
+                // var imageHash = jsonResponse["images"][Path.GetFileName(imagePath)]["hash"].ToString();
+
+                return imageHash.ToString();
             }
         }
 
-        public async Task<string> CreateAdCreative(string accessToken, string adAccountId, string pageId, string imageHash)
+        public async Task<ResponseVM<string>> ScheduleDelivery(string accessToken, string adAccountId, string adsetId, string adsetName, string creativeId)
         {
+            var url = $"https://graph.facebook.com/v19.0/act_{adAccountId}/ads";
+            var status = "PAUSED";
+
             using (var httpClient = new HttpClient())
             {
-                var url = $"https://graph.facebook.com/v19.0/act_{adAccountId}/adcreatives";
+                var creative = new
+                {
+                    creative_id = creativeId
+                };
 
+                var jsonCreative = JsonSerializer.Serialize(creative);
 
-                var objectStorySpec = new
+                var formData = new MultipartFormDataContent();
+                formData.Add(new StringContent("My ad"), "name");
+                formData.Add(new StringContent(adsetId), "adset_id");
+                formData.Add(new StringContent(jsonCreative), "creative");
+                formData.Add(new StringContent(status), "status");
+                formData.Add(new StringContent(accessToken), "access_token");
+
+                var response = await httpClient.PostAsync(url, formData);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception($"Failed to create ad. Status code: {response.StatusCode}");
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                return new ResponseVM<string>("200", "Ad scheduled", responseContent); ;
+            }
+        }
+        public async Task<string> CreateAdCreative(string accessToken, string adAccountId, string pageId, string imageHash)
+        {
+            var url = $"https://graph.facebook.com/v19.0/act_{adAccountId}/adcreatives";
+            var message = "try it out";
+
+            var requestBody = new
+            {
+                name = "Sample Creative",
+                object_story_spec = new
                 {
                     page_id = pageId,
                     link_data = new
                     {
-                        image_hash = imageHash,
                         link = $"https://facebook.com/{pageId}",
-                        message = "try it out"
+                        message = message,
+                        image_hash = imageHash
                     }
-                };
+                },
+                degrees_of_freedom_spec = new
+                {
+                    creative_features_spec = new
+                    {
+                        standard_enhancements = new
+                        {
+                            enroll_status = "OPT_IN"
+                        }
+                    }
+                },
+                access_token = accessToken
+            };
 
-                var jsonSpec = JsonSerializer.Serialize(objectStorySpec);
-                var formData = new MultipartFormDataContent();
+
+            using (var httpClient = new HttpClient())
+            {
+                var jsonRequest = JsonSerializer.Serialize(requestBody);
+                var content = new StringContent(jsonRequest, System.Text.Encoding.UTF8, "application/json");
+
+/*                var formData = new MultipartFormDataContent();
                 formData.Add(new StringContent("Sample Creative"), "name");
                 formData.Add(new StringContent(jsonSpec), "object_story_spec");
-                formData.Add(new StringContent(accessToken), "access_token");
+                formData.Add(new StringContent(degreesOfFreedomSpec), "degrees_of_freedom_spec");
+                formData.Add(new StringContent(accessToken), "access_token");*/
 
-                var response = await httpClient.PostAsync(url, formData);
+                var response = await httpClient.PostAsync(url, content);
                 if (!response.IsSuccessStatusCode)
                 {
                     throw new Exception($"Failed to create ad creative. Status code: {response.StatusCode}");
@@ -208,7 +272,6 @@ namespace backend.Services
                 return responseContent;
             }
         }
-
 
         public string CreateTargetingSpec(string countriesResponse, string interestsResponse)
         {
@@ -230,9 +293,10 @@ namespace backend.Services
 
         public async Task<ResponseVM<string>> CreateAdSet(AdsetDto adset)
         {
-            var accessToken = "EAAKbj1ZAaEcgBOwTbKa9g3Kq2YQcqV8ZCw5tXhv0muv5q0dnzwjPEBXyL7ZCZBB42AcTOZBlEeP8GOVZCOzeZBg9BKbvKZB4xZAMGTGu3CvoA8EyI2vyVzR4y7cnvsEbpyThfQ1H2dabq4IJHwM0lpZBsbutmZBjsvNWJZAaMGsioOMmAHHZCgzjWZAbwFTbtS";
-            var adAccountId = "1295877481040276";
-            var campaignId = "120207131647270113";
+            var accessToken = "EAAKbj1ZAaEcgBOZCnYWbghZCR2tIBvjeHbsJsvwKZANvYWQZBBT9ZC7g3PAbJyrestgddPxK1ZCsjeVKEwdrvvKZCNiZAuf2ZASUurzWXSvZC2bR373WAmYdC0dmgC2PoDbr8cxFgQuuLDwWBKzgk8Aq3RZArONgdVXLjlidrM68KrZCYfjGZAbijZAzMuMtgJFwrFgYkt3gLhNvFULQQVJMgnMiAZDZD";
+            var adAccountId = "575670381167089";
+            var campaignId = "120207538600830298";
+
             var interestsResponse = await GetInterests(accessToken, "movie");
             using JsonDocument document = JsonDocument.Parse(interestsResponse);
             var interest = document.RootElement.GetProperty("data").EnumerateArray().First();
@@ -275,13 +339,10 @@ namespace backend.Services
                 }
 
                 var content = await response.Content.ReadAsStringAsync();
-
-                
-
             }
 
-                await UploadFile("D:\\4DMagic\\files\\KaDeWe_Haus_erweitert.jpg", accessToken, adAccountId);
-                await CreateAdCreative(accessToken, adAccountId, "147986631741136", "26cbab3335891860d4c05066299f01f4");
+          //  var imageHash = await UploadFile("D:\\FYP2\\picture.png", accessToken, adAccountId);
+            var res = await CreateAdCreative(accessToken, adAccountId, "146245671914422", "009fd0c9bcf36ac7edb3551a4fecc9db");
             return new ResponseVM<string>("200", "Success");
         }
 
