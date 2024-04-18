@@ -10,7 +10,7 @@
         public string CampaignId { get; set; }
         public List<string> Geolocations { get; set; }
         public string Interests { get; set; }
-        public int StartTime { get; set; }
+        public string StartTime { get; set; }
         public string Status { get; set; }
         public string AccessToken { get; set; }
     }

@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "D:\\OneClicks\\Backend-Oneclicks\\backend.csproj": {}
+    "D:\\FYP2\\backend\\backend\\backend.csproj": {}
   },
   "projects": {
-    "D:\\OneClicks\\Backend-Oneclicks\\backend.csproj": {
+    "D:\\FYP2\\backend\\backend\\backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\OneClicks\\Backend-Oneclicks\\backend.csproj",
+        "projectUniqueName": "D:\\FYP2\\backend\\backend\\backend.csproj",
         "projectName": "backend",
-        "projectPath": "D:\\OneClicks\\Backend-Oneclicks\\backend.csproj",
-        "packagesPath": "C:\\Users\\Umer Farooq\\.nuget\\packages\\",
-        "outputPath": "D:\\OneClicks\\Backend-Oneclicks\\obj\\",
+        "projectPath": "D:\\FYP2\\backend\\backend\\backend.csproj",
+        "packagesPath": "C:\\Users\\LENOVO\\.nuget\\packages\\",
+        "outputPath": "D:\\FYP2\\backend\\backend\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Umer Farooq\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\LENOVO\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -88,7 +88,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.101\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.403\\RuntimeIdentifierGraph.json"
         }
       }
     }
