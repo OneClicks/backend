@@ -46,4 +46,5 @@ namespace backend.DTOs
     {
         public List<string> countries { get; set; }
     }
+
 }
