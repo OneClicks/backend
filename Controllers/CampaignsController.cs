@@ -27,7 +27,7 @@ namespace backend.Controllers
         {
             try
             {
-                var data = await _facebookService.CreateCampaignAsync(campaign);
+                var data = await _facebookService.GetCities("Un", "EAAKbj1ZAaEcgBOxoDtv1ZABZACPu4bQsi8u5OfypNAkCIieC9gp6VQQZAKqL1MeBgDZBhheEjsMnocD1LsD5kheGI4dZC9mDoYHbL9Fkwbp2K7HvEwFZB0nJn62O2EOwjCsGFHsH3JAjUVsVKCKPZAMZAM9sZA6MV8a9QbwlXLa5ulTvGcoX7GFiaW31QwjEW4bjEg1mSmZC63e2z8bo6GImQZDZD");
                 _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
             }
@@ -46,7 +46,7 @@ namespace backend.Controllers
         {
             try
             {
-                var data = await _facebookService.CreateCampaignAsync(campaign);
+                var data = await _facebookService.CreateCampaign(campaign);
                 _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
             }
@@ -98,11 +98,11 @@ namespace backend.Controllers
         {
             try
             {
-                var accessToken = "EAAKbj1ZAaEcgBOZCnYWbghZCR2tIBvjeHbsJsvwKZANvYWQZBBT9ZC7g3PAbJyrestgddPxK1ZCsjeVKEwdrvvKZCNiZAuf2ZASUurzWXSvZC2bR373WAmYdC0dmgC2PoDbr8cxFgQuuLDwWBKzgk8Aq3RZArONgdVXLjlidrM68KrZCYfjGZAbijZAzMuMtgJFwrFgYkt3gLhNvFULQQVJMgnMiAZDZD";
-                var adAccountId = "575670381167089";
-                var adsetId = "120208487872970298";
-                var adsetName = "My Ad Set";
-                var creativeId = "120208495956050298";
+                var accessToken = "EAAKbj1ZAaEcgBOykHcNeUAQcIwzGfShwTFzuvWSqIIGdHj61MKStA7qPQcPZCpFBgrUZAN4IJUgktKh1L7ILFWWEMUnZBr6OpUgSpMfZAEbKKTsK4MSJJ0QDWEp9fpt6u0tQaoEZBwNhmxpRgkvNdQjxBepjMs87LEAzUH28ZBZAXxHPlQogcLZARHTlgoeGBlHSuonlxCFzypqDmqlloZApEZD";
+                var adAccountId = "1295877481040276";
+                var adsetId = "120207945721040113";
+                var adsetName = "My Ad Set for aftercred";
+                var creativeId = "120207945749960113";
 
                 var data = await _facebookService.ScheduleDelivery(accessToken, adAccountId, adsetId, adsetName, creativeId);
                 _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
