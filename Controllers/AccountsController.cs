@@ -122,7 +122,7 @@ namespace backend.Controllers
             {
                 var adAccountId = "1295877481040276";
                var res= await _facebookService.GetAdAccountsData(accessToken);
-                //var res = await _facebookService.CreateCampaignAsync(accessToken, adAccountId);
+                //var res = await _facebookService.CreateCampaign(accessToken, adAccountId);
 
                 return Ok(res);
             }

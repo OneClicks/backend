@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
+using backend.DTOs;
 
 namespace backend.Entities
 {
@@ -30,10 +31,10 @@ namespace backend.Entities
         public string CampaignId { get; set; }
 
         [BsonElement("Geolocations")]
-        public List<string> Geolocations { get; set; }  // From original class
+        public GeoLocations Geolocations { get; set; }  // From original class
 
         [BsonElement("Interests")]
-        public string Interests { get; set; }
+        public List<Interest> Interests { get; set; }
 
         [BsonElement("StartTime")]
         public string StartTime { get; set; }
