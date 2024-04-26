@@ -1,8 +1,8 @@
 ﻿
-using backend.Services.Interfaces;
+using backend.Service.Interfaces;
 using MailKit.Net.Smtp;
 using MimeKit;
-namespace backend.Services
+namespace backend.Service
 {
 
 

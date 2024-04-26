@@ -1,6 +1,6 @@
 ﻿using backend.DTOs;
 using backend.Entities;
-using backend.Services.Interfaces;
+using backend.Service.Interfaces;
 using backend.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

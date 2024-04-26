@@ -1,4 +1,4 @@
-﻿namespace backend.Services.Interfaces
+﻿namespace backend.Service.Interfaces
 {
     public interface ITokenService
     {
