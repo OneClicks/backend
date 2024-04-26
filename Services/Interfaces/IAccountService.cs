@@ -2,7 +2,7 @@
 using backend.Entities;
 using backend.ViewModels;
 
-namespace backend.Services.Interfaces
+namespace backend.Service.Interfaces
 {
     public interface IAccountService
     {

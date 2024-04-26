@@ -1,10 +1,16 @@
 ﻿using backend.DTOs;
 using backend.Entities;
-using backend.Services;
-using backend.Services.Interfaces;
+using backend.Service;
+using backend.Service.Interfaces;
 using backend.ViewModels;
+using Google.Apis.Auth.OAuth2.Requests;
+using Google.Apis.Auth.OAuth2;
+using Google.Rpc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Reflection.Metadata;
+using backend.Configurations;
+using System.Text.Json;
 
 namespace backend.Controllers
 {
@@ -14,23 +20,52 @@ namespace backend.Controllers
     {
         private readonly IFB _facebookService;
         private readonly ILogger<CampaignsController> _logger;
+        private readonly HttpClient _httpClientFactory;
+        private readonly IGoogleApiService googleApiService;
 
-
-        public CampaignsController(IFB facebookService, ILogger<CampaignsController> logger)
+        public CampaignsController(IFB facebookService, ILogger<CampaignsController> logger, HttpClient httpClient, IGoogleApiService googleApiService)
         {
             _facebookService = facebookService;
             _logger = logger;
+            _httpClientFactory = httpClient;
+            this.googleApiService = googleApiService;
         }
-        [HttpPost("test")]
+        [HttpGet("test")]
         //[Authorize(Policy = "ApiKeyPolicy")]
-        public async Task<ActionResult<ResponseVM<Users>>> Test(CampaignDto campaign)
+        public async Task<ActionResult<ResponseVM<Users>>> Test(string code)
         {
             try
             {
-                var data = await _facebookService.GetCities("Un", "EAAKbj1ZAaEcgBOxoDtv1ZABZACPu4bQsi8u5OfypNAkCIieC9gp6VQQZAKqL1MeBgDZBhheEjsMnocD1LsD5kheGI4dZC9mDoYHbL9Fkwbp2K7HvEwFZB0nJn62O2EOwjCsGFHsH3JAjUVsVKCKPZAMZAM9sZA6MV8a9QbwlXLa5ulTvGcoX7GFiaW31QwjEW4bjEg1mSmZC63e2z8bo6GImQZDZD");
-                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
-                return Ok(data);
-            }
+
+                    var clientSecrets = new ClientSecrets
+                    {
+                        ClientId = "195870252277-kgqnfto3d27fhvvhivk7m3ikfkc4qhvl.apps.googleusercontent.com",
+                        ClientSecret = "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"
+                    };
+
+                var tokenRequestContent = new MultipartFormDataContent
+                {
+                    { new StringContent(code), "code" },
+                    { new StringContent(clientSecrets.ClientId), "client_id" },
+                    { new StringContent(clientSecrets.ClientSecret), "client_secret" },
+                    { new StringContent("https://localhost:3000"), "redirect_uri" },
+                    { new StringContent("authorization_code"), "grant_type" }
+                };
+
+
+                var response = await _httpClientFactory.PostAsync("https://oauth2.googleapis.com/token", tokenRequestContent);
+                    var responseContent = await response.Content.ReadAsStringAsync();
+               
+                using JsonDocument document = JsonDocument.Parse(responseContent);
+
+                var res = document.RootElement.GetProperty("refresh_token").GetString();
+
+                await googleApiService.GetAllCampaigns(Constants.GoogleCustomerId, res);
+                    return Ok(responseContent);
+                    //var data = await _facebookService.GetCities("Un", "EAAKbj1ZAaEcgBOxoDtv1ZABZACPu4bQsi8u5OfypNAkCIieC9gp6VQQZAKqL1MeBgDZBhheEjsMnocD1LsD5kheGI4dZC9mDoYHbL9Fkwbp2K7HvEwFZB0nJn62O2EOwjCsGFHsH3JAjUVsVKCKPZAMZAM9sZA6MV8a9QbwlXLa5ulTvGcoX7GFiaW31QwjEW4bjEg1mSmZC63e2z8bo6GImQZDZD");
+                    //_logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                    //return Ok(data);
+                }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString().Substring(0, 50));

@@ -1,8 +1,8 @@
 using backend.Repository.Interfaces;
 using backend.Repository;
-using backend.Services.API.Services;
-using backend.Services.Interfaces;
-using backend.Services;
+using backend.Service.API.Services;
+using backend.Service.Interfaces;
+using backend.Service;
 using backend.Extensions;
 using backend.Configurations;
 using Microsoft.Extensions.Configuration;
@@ -24,6 +24,8 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 // services
 
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IGoogleApiService, GoogleApiService>();
+
 builder.Services.AddScoped<IAccountService, AccountsService>();
 builder.Services.AddScoped<IFB, FacebookApiService>();
 
