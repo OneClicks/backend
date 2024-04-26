@@ -2,9 +2,9 @@
 using backend.Entities;
 using backend.ViewModels;
 using Microsoft.AspNetCore.Mvc;
-using static backend.Service.FacebookApiService;
+using static backend.Services.FacebookApiService;
 
-namespace backend.Service.Interfaces
+namespace backend.Services.Interfaces
 {
     public interface IFB
     {
