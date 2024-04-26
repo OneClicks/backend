@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using backend.ViewModels;
-using backend.Service.Interfaces;
+using backend.Services.Interfaces;
 using backend.Configurations;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
@@ -13,12 +13,12 @@ using backend.Entities;
 using backend.Repository.Interfaces;
 using MongoDB.Driver;
 using MongoDB.Bson.IO;
-using backend.Service.API.Services;
+using backend.Services.API.Services;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 
 
-namespace backend.Service
+namespace backend.Services
 {
     public class FacebookApiService : IFB
     {
@@ -309,8 +309,8 @@ namespace backend.Service
         #region 4. AD CREATIVE 
         public async Task<string> ProvideAdCreative(string accessToken, string query)
         {
-            //    var imageHash = await UploadFile("D:\\TestPicture\\picture2.png", accessToken, adAccountId);
-            //    var res = await CreateAdCreative(accessToken, adAccountId, "147986631741136", imageHash);
+            var imageHash = await UploadFile("D:\\TestPicture\\picture2.png", accessToken, adAccountId);
+            var res = await CreateAdCreative(accessToken, adAccountId, "147986631741136", imageHash);
             return "";
         }
         public async Task<string> CreateAdCreative(string accessToken, string adAccountId, string pageId, string imageHash)
