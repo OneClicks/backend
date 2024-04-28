@@ -37,31 +37,31 @@ namespace backend.Controllers
             try
             {
 
-                    var clientSecrets = new ClientSecrets
-                    {
-                        ClientId = "195870252277-kgqnfto3d27fhvvhivk7m3ikfkc4qhvl.apps.googleusercontent.com",
-                        ClientSecret = "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"
-                    };
+                //    var clientSecrets = new ClientSecrets
+                //    {
+                //        ClientId = "195870252277-kgqnfto3d27fhvvhivk7m3ikfkc4qhvl.apps.googleusercontent.com",
+                //        ClientSecret = "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"
+                //    };
 
-                var tokenRequestContent = new MultipartFormDataContent
-                {
-                    { new StringContent(code), "code" },
-                    { new StringContent(clientSecrets.ClientId), "client_id" },
-                    { new StringContent(clientSecrets.ClientSecret), "client_secret" },
-                    { new StringContent("https://localhost:3000"), "redirect_uri" },
-                    { new StringContent("authorization_code"), "grant_type" }
-                };
+                //var tokenRequestContent = new MultipartFormDataContent
+                //{
+                //    { new StringContent(code), "code" },
+                //    { new StringContent(clientSecrets.ClientId), "client_id" },
+                //    { new StringContent(clientSecrets.ClientSecret), "client_secret" },
+                //    { new StringContent("https://localhost:3000"), "redirect_uri" },
+                //    { new StringContent("authorization_code"), "grant_type" }
+                //};
 
 
-                var response = await _httpClientFactory.PostAsync("https://oauth2.googleapis.com/token", tokenRequestContent);
-                    var responseContent = await response.Content.ReadAsStringAsync();
+                //var response = await _httpClientFactory.PostAsync("https://oauth2.googleapis.com/token", tokenRequestContent);
+                //    var responseContent = await response.Content.ReadAsStringAsync();
                
-                using JsonDocument document = JsonDocument.Parse(responseContent);
+                //using JsonDocument document = JsonDocument.Parse(responseContent);
 
-                var res = document.RootElement.GetProperty("refresh_token").GetString();
+                //var res = document.RootElement.GetProperty("refresh_token").GetString();
 
-                await googleApiService.GetAllCampaigns(Constants.GoogleCustomerId, res);
-                    return Ok(responseContent);
+                await googleApiService.GetAllCampaigns(Constants.GoogleCustomerId, "");
+                    return Ok();
                     //var data = await _facebookService.GetCities("Un", "EAAKbj1ZAaEcgBOxoDtv1ZABZACPu4bQsi8u5OfypNAkCIieC9gp6VQQZAKqL1MeBgDZBhheEjsMnocD1LsD5kheGI4dZC9mDoYHbL9Fkwbp2K7HvEwFZB0nJn62O2EOwjCsGFHsH3JAjUVsVKCKPZAMZAM9sZA6MV8a9QbwlXLa5ulTvGcoX7GFiaW31QwjEW4bjEg1mSmZC63e2z8bo6GImQZDZD");
                     //_logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                     //return Ok(data);
