@@ -5,6 +5,8 @@ using backend.Services.Interfaces;
 using backend.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
+using System.Globalization;
 
 namespace backend.Controllers
 {
@@ -14,7 +16,6 @@ namespace backend.Controllers
     {
         private readonly IFB _facebookService;
         private readonly ILogger<CampaignsController> _logger;
-
 
         public CampaignsController(IFB facebookService, ILogger<CampaignsController> logger)
         {
@@ -92,19 +93,32 @@ namespace backend.Controllers
             }
         }
 
-        [HttpPost("CreateAd")]
+        [HttpPost("CreateAdcreative")]
+        //[Authorize(Policy = "ApiKeyPolicy")]
+        public async Task<ActionResult<ResponseVM<Adset>>> CreateAdCreative(AdCreativeDto creative )
+        {
+            try
+            {
+                creative.ImageFile = "D:\\TestPicture\\picture2.png";
+                var data = await _facebookService.ProvideAdCreative(creative);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString().Substring(0, 50));
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred while creating adcreative.");
+            }
+        }
+
+        [HttpPost("ScheduleAd")]
         //[Authorize(Policy = "ApiKeyPolicy")]
         public async Task<ActionResult<ResponseVM<Adset>>> CreateAd(AdDto ad)
         {
             try
             {
-                var accessToken = "EAAKbj1ZAaEcgBOykHcNeUAQcIwzGfShwTFzuvWSqIIGdHj61MKStA7qPQcPZCpFBgrUZAN4IJUgktKh1L7ILFWWEMUnZBr6OpUgSpMfZAEbKKTsK4MSJJ0QDWEp9fpt6u0tQaoEZBwNhmxpRgkvNdQjxBepjMs87LEAzUH28ZBZAXxHPlQogcLZARHTlgoeGBlHSuonlxCFzypqDmqlloZApEZD";
-                var adAccountId = "1295877481040276";
-                var adsetId = "120207945721040113";
-                var adsetName = "My Ad Set for aftercred";
-                var creativeId = "120207945749960113";
-
-                var data = await _facebookService.ScheduleDelivery(accessToken, adAccountId, adsetId, adsetName, creativeId);
+                var data = await _facebookService.ScheduleDelivery(ad);
                 _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
             }

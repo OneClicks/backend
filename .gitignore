@@ -478,9 +478,6 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# Ignore .NET Core tool cache
-.dtbcache.v2
-
 # Ignore backend build artifacts
 backend.dll
 backend.exe
@@ -489,3 +486,5 @@ backend.pdb
 # Ignore Visual Studio user options file
 .suo
 
+# Ignore .NET Core tool cache
+.dtbcache.v2

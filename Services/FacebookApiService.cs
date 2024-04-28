@@ -16,6 +16,7 @@ using MongoDB.Bson.IO;
 using backend.Services.API.Services;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
+using System.Collections.Generic;
 
 
 namespace backend.Services
@@ -26,14 +27,81 @@ namespace backend.Services
         private readonly FacebookApiOptions _facebookApiOptions;
         private readonly IGenericRepository<Campaigns> _campaignRepository;
         private readonly IGenericRepository<Adset> _adsetRepository;
+        private readonly IGenericRepository<AdCreative> _adcreativeRepository;
+        private readonly IGenericRepository<Ad> _adRepository;
 
-
-        public FacebookApiService(HttpClient httpClient, IOptions<FacebookApiOptions> facebookApiOptions, IGenericRepository<Campaigns> camRepository, IGenericRepository<Adset> adsetRepository)
-        {
+        public FacebookApiService(HttpClient httpClient, IOptions<FacebookApiOptions> facebookApiOptions, 
+            IGenericRepository<Campaigns> camRepository, IGenericRepository<Adset> adsetRepository,
+            IGenericRepository<AdCreative> adcreativeRepository, IGenericRepository<Ad> adRepository)
+            {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _facebookApiOptions = facebookApiOptions?.Value ?? throw new ArgumentNullException(nameof(facebookApiOptions));
             _campaignRepository = camRepository;
             _adsetRepository = adsetRepository;
+            _adcreativeRepository = adcreativeRepository;
+            _adRepository = adRepository;
+        }
+        public async Task<string> GetLongLivedToken(string accessToken)
+        {
+            var url = $"https://graph.facebook.com/{_facebookApiOptions.GraphApiVersion}/oauth/access_token" +
+                        $"?grant_type=fb_exchange_token" +
+                        $"&client_id={_facebookApiOptions.AppId}" +
+                        $"&client_secret={_facebookApiOptions.AppSecret}" +
+                        $"&fb_exchange_token={accessToken}";
+
+
+            var response = await _httpClient.GetAsync(url);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                using JsonDocument document = JsonDocument.Parse(content);
+
+                return document.RootElement.GetProperty("access_token").GetString();
+            }
+            else
+            {
+                throw new Exception($"Failed to exchange access token. Status code: {response.StatusCode}");
+            }
+        }
+        public async Task<ResponseVM<AdaccountsDto>> GetAdAccountsData(string accessToken)
+        {
+            var LongLivedToken = await GetLongLivedToken(accessToken);
+
+            var url = $"https://graph.facebook.com/v18.0/me" +
+                      $"?fields=id,name,accounts,adaccounts" +
+                      $"&access_token={accessToken}";
+
+            var response = await _httpClient.GetAsync(url);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                using JsonDocument document = JsonDocument.Parse(content);
+
+                var adAccounts = document.RootElement;
+                var pageIds = new List<string>();
+                foreach (var account in adAccounts.GetProperty("accounts").GetProperty("data").EnumerateArray())
+                {
+                    pageIds.Add(account.GetProperty("id").GetString());
+                }
+                var data = new AdaccountsDto
+                {
+                    AccountId = adAccounts.GetProperty("id").GetString(),
+                    AdAccountId = adAccounts.GetProperty("adaccounts").GetProperty("data").EnumerateArray().ElementAt(0).GetProperty("account_id").GetString(),
+                    Pages = pageIds,
+                    Platform = "Facebook",
+                    UserId = adAccounts.GetProperty("id").GetString(),
+                    LongLiveToken = LongLivedToken
+
+
+                };
+                return new ResponseVM<AdaccountsDto>("200", "success", data);
+            }
+            else
+            {
+                throw new Exception($"Failed to fetch user data. Status code: {response.StatusCode}");
+            }
         }
         public async Task<ResponseVM<HttpResponseMessage>> CreateCampaign(CampaignDto campaign)
         {
@@ -80,9 +148,17 @@ namespace backend.Services
 
             }
         }
-
+        public async Task<ResponseVM<List<Campaigns>>> GetAllCampaigns()
+        {
+            var categories = await _campaignRepository.FetchAll();
+            if (categories.Count == 0)
+            {
+                return new ResponseVM<List<Campaigns>>("404", "No Campaign Found!");
+            }
+            return new ResponseVM<List<Campaigns>>("200", "Successfully fetched all categories", categories);
+        }
+      
         #region 2.get Targeting Spec City , Interest 
-
         public string CreateTargetingSpec(string countriesResponse, string interestsResponse)
         {
             // Assume we have extracted the country code from the countriesResponse
@@ -185,8 +261,7 @@ namespace backend.Services
             {
                 throw new Exception($"Failed to search ad targeting categories. Status code: {response.StatusCode}");
             }
-
-            
+                        
             var json = await response.Content.ReadAsStringAsync();
             using JsonDocument document = JsonDocument.Parse(json);
             var adTargetingCategories = new List<AdTargetingCategory>();
@@ -219,7 +294,6 @@ namespace backend.Services
 
             var content = await response.Content.ReadAsStringAsync();
 
-
             return content;
         }
         public async Task<string> SearchAdInterest(string accessToken, string query, string apiVersion)
@@ -244,7 +318,7 @@ namespace backend.Services
         #endregion
 
         #region 3.AD Set 
-        public async Task<ResponseVM<string>> CreateAdSet(AdsetDto adset)
+        public async Task<ResponseVM<HttpResponseMessage>> CreateAdSet(AdsetDto adset)
         {
             var targetingSpec = new Targeting
             {
@@ -296,27 +370,31 @@ namespace backend.Services
                     Status = adset.Status,
                                        
                 };
-                await _adsetRepository.Create(adsetObj);
-                var content = await response.Content.ReadAsStringAsync();
-            }
 
-      
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    await _adsetRepository.Create(adsetObj);
+                    return new ResponseVM<HttpResponseMessage>("200", "Successfully created adset", response);
 
-            return new ResponseVM<string>("200", "Success");
+                }
+                return new ResponseVM<HttpResponseMessage>("400", "Cannot create adset", response);
+
+            }   
         }
         #endregion
 
         #region 4. AD CREATIVE 
-        public async Task<string> ProvideAdCreative(string accessToken, string query)
+        public async Task<ResponseVM<AdCreative>> ProvideAdCreative(AdCreativeDto creative)
         {
-            var imageHash = await UploadFile("D:\\TestPicture\\picture2.png", accessToken, adAccountId);
-            var res = await CreateAdCreative(accessToken, adAccountId, "147986631741136", imageHash);
-            return "";
+            creative.ImageHash = await UploadFile(creative.ImageFile, creative.AccessToken, creative.AdAccountId);
+            var res = await CreateAdCreative(creative);
+
+            return new ResponseVM<AdCreative>("200", "Successfully created adcreative", res.ResponseData);
         }
-        public async Task<string> CreateAdCreative(string accessToken, string adAccountId, string pageId, string imageHash)
+        public async Task<ResponseVM<AdCreative>> CreateAdCreative(AdCreativeDto creative)
         {
-            //var imageHash = "c4ac5393e1c91305d8de47dd166a4681";
-            var url = $"https://graph.facebook.com/v19.0/act_{adAccountId}/adcreatives";
+            var url = $"https://graph.facebook.com/v19.0/act_{creative.AdAccountId}/adcreatives";
             var msg = "try it out";
 
             var requestBody = new
@@ -324,12 +402,12 @@ namespace backend.Services
                 name = "Sample Creative SandBox",
                 object_story_spec = new
                 {
-                    page_id = pageId,
+                    page_id = creative.PageId,
                     link_data = new
                     {
-                        link = $"https://facebook.com/{pageId}",
+                        link = $"https://facebook.com/{creative.PageId}",
                         message = msg,
-                        image_hash = imageHash
+                        image_hash = creative.ImageHash
                     }
                 },
                 degrees_of_freedom_spec = new
@@ -342,7 +420,7 @@ namespace backend.Services
                         }
                     }
                 },
-                access_token = accessToken
+                access_token = creative.AccessToken
             };
 
 
@@ -351,20 +429,24 @@ namespace backend.Services
                 var jsonRequest = JsonSerializer.Serialize(requestBody);
                 var content = new StringContent(jsonRequest, System.Text.Encoding.UTF8, "application/json");
 
-                //var formData = new MultipartFormDataContent();
-                //formData.Add(new StringContent("Sample Creative "), "name");
-                //formData.Add(new StringContent(jsonSpec), "object_story_spec");
-                //formData.Add(new StringContent(degreesOfFreedomSpec), "degrees_of_freedom_spec");
-                //formData.Add(new StringContent(accessToken), "access_token");
-
                 var response = await httpClient.PostAsync(url, content);
                 if (!response.IsSuccessStatusCode)
                 {
                     throw new Exception($"Failed to create ad creative. Status code: {response.StatusCode}");
                 }
-
+                var adcreativeObj = new AdCreative
+                { 
+                    CreativeId = creative.CreativeId,
+                    CreativeName = creative.CreativeName,
+                    AdsetId = creative.AdsetId,
+                    AccessToken = creative.AccessToken,
+                    ImageFile = creative.ImageFile,
+                    ImageHash = creative.ImageHash,
+                };
                 var responseContent = await response.Content.ReadAsStringAsync();
-                return responseContent;
+                var responseCreative = await _adcreativeRepository.Create(adcreativeObj);
+                
+                return new ResponseVM<AdCreative>("200", "Successfully created adcreative", responseCreative);                               
             }
         }
 
@@ -423,28 +505,27 @@ namespace backend.Services
         }
         #endregion
 
-
         #region 5. Schedule Delivery of AD
-        public async Task<ResponseVM<string>> ScheduleDelivery(string accessToken, string adAccountId, string adsetId, string adsetName, string creativeId)
+        public async Task<ResponseVM<string>> ScheduleDelivery(AdDto ad)
         {
-            var url = $"https://graph.facebook.com/v19.0/act_{adAccountId}/ads";
+            var url = $"https://graph.facebook.com/v19.0/act_{ad.AdAccountId}/ads";
             var status = "PAUSED";
 
             using (var httpClient = new HttpClient())
             {
                 var creative = new
                 {
-                    creative_id = creativeId
+                    creative_id = ad.CreativeId
                 };
 
                 var jsonCreative = JsonSerializer.Serialize(creative);
 
                 var formData = new MultipartFormDataContent();
                 formData.Add(new StringContent("My ad"), "name");
-                formData.Add(new StringContent(adsetId), "adset_id");
+                formData.Add(new StringContent(ad.AdsetId), "adset_id");
                 formData.Add(new StringContent(jsonCreative), "creative");
                 formData.Add(new StringContent(status), "status");
-                formData.Add(new StringContent(accessToken), "access_token");
+                formData.Add(new StringContent(ad.AccessToken), "access_token");
 
                 var response = await httpClient.PostAsync(url, formData);
 
@@ -454,89 +535,67 @@ namespace backend.Services
                 }
 
                 var responseContent = await response.Content.ReadAsStringAsync();
-                return new ResponseVM<string>("200", "Ad scheduled", responseContent); ;
+
+                var adDto = new Ad
+                {
+                    AdAccountId = ad.AdAccountId,
+                    AdsetName = ad.AdsetId,
+                    Status = ad.Status,
+                    AdsetId = ad.AdsetId,
+                    AccessToken = ad.AccessToken,
+                };
+                var responseAd = await _adRepository.Create(adDto);
+
+                return new ResponseVM<string>("200", "Successfully created adcreative", responseAd.ToString());
             }
         }
-
         #endregion
 
-
-
-        public async Task<ResponseVM<List<Campaigns>>> GetAllCampaigns()
+        public async Task<ResponseVM<string>> GetCampaignInsights(string campaignId, string accessToken)
         {
-            var categories = await _campaignRepository.FetchAll();
-            if (categories.Count == 0)
+            string datePreset = "last_7d";
+            string fields = "impressions";
+
+            // Construct the URL
+            string url = $"https://graph.facebook.com/{_facebookApiOptions.GraphApiVersion}/{campaignId}/insights";
+            url += $"?fields={fields}&date_preset={datePreset}&access_token={accessToken}";
+
+            using (var httpClient = new HttpClient())
             {
-                return new ResponseVM<List<Campaigns>>("404", "No Campaign Found!");
-            }
-
-
-            return new ResponseVM<List<Campaigns>>("200", "Successfully fetched all categories", categories);
-        }
-        public async Task<string> GetLongLivedToken(string accessToken)
-        {
-            var url = $"https://graph.facebook.com/{_facebookApiOptions.GraphApiVersion}/oauth/access_token" +
-                        $"?grant_type=fb_exchange_token" +
-                        $"&client_id={_facebookApiOptions.AppId}" +
-                        $"&client_secret={_facebookApiOptions.AppSecret}" +
-                        $"&fb_exchange_token={accessToken}";
-
-
-            var response = await _httpClient.GetAsync(url);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                using JsonDocument document = JsonDocument.Parse(content);
-
-                return document.RootElement.GetProperty("access_token").GetString();
-            }
-            else
-            {
-                throw new Exception($"Failed to exchange access token. Status code: {response.StatusCode}");
-            }
-        }
-
-        public async Task<ResponseVM<AdaccountsDto>> GetAdAccountsData(string accessToken)
-        {
-            var LongLivedToken = await GetLongLivedToken(accessToken);
-
-            var url = $"https://graph.facebook.com/v18.0/me" +
-                      $"?fields=id,name,accounts,adaccounts" +
-                      $"&access_token={accessToken}";
-
-            var response = await _httpClient.GetAsync(url);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                using JsonDocument document = JsonDocument.Parse(content);
-
-                var adAccounts = document.RootElement;
-                var pageIds = new List<string>();
-                foreach (var account in adAccounts.GetProperty("accounts").GetProperty("data").EnumerateArray())
+               var response = await _httpClient.GetAsync(url);
+                if (!response.IsSuccessStatusCode)
                 {
-                    pageIds.Add(account.GetProperty("id").GetString());
+                    throw new Exception($"Failed to get insights. Status code: {response.StatusCode}");
                 }
-                var data = new AdaccountsDto
-                {
-                    AccountId = adAccounts.GetProperty("id").GetString(),
-                    AdAccountId = adAccounts.GetProperty("adaccounts").GetProperty("data").EnumerateArray().ElementAt(0).GetProperty("account_id").GetString(),
-                    Pages = pageIds,
-                    Platform ="Facebook",
-                    UserId=adAccounts.GetProperty("id").GetString(), 
-                    LongLiveToken = LongLivedToken
+                var responseContent = await response.Content.ReadAsStringAsync();
+                using JsonDocument document = JsonDocument.Parse(responseContent);
+                var responseData = document.RootElement.GetProperty("report_run_id").GetString();
 
-
-            };
-                return new ResponseVM<AdaccountsDto>("200","success",data);
-            }
-            else
-            {
-                throw new Exception($"Failed to fetch user data. Status code: {response.StatusCode}");
+                return new ResponseVM<string> ("200","Interests data", responseData);
             }
         }
 
-       
+        public async Task<ResponseVM<string>> GetAdAccountInsights(string adAccountId, string accessToken)
+        {
+            string datePreset = "last_7d";
+            string fields = "impressions";
+
+            // Construct the URL
+            string url = $"https://graph.facebook.com/{_facebookApiOptions.GraphApiVersion}/act_{adAccountId}/insights";
+            url += $"?fields={fields}&date_preset={datePreset}&access_token={accessToken}";
+
+            using (var httpClient = new HttpClient())
+            {
+                var response = await _httpClient.GetAsync(url);
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception($"Failed to get insights. Status code: {response.StatusCode}");
+                }
+                var responseContent = await response.Content.ReadAsStringAsync();
+                using JsonDocument document = JsonDocument.Parse(responseContent);
+
+                return new ResponseVM<string>("200", "Interests data", responseContent);
+            }
+        }
     }
 }
