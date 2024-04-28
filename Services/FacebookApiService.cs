@@ -103,6 +103,8 @@ namespace backend.Services
                 throw new Exception($"Failed to fetch user data. Status code: {response.StatusCode}");
             }
         }
+
+        #region 1. create campaign
         public async Task<ResponseVM<HttpResponseMessage>> CreateCampaign(CampaignDto campaign)
         {
             try
@@ -157,7 +159,8 @@ namespace backend.Services
             }
             return new ResponseVM<List<Campaigns>>("200", "Successfully fetched all categories", categories);
         }
-      
+        #endregion
+
         #region 2.get Targeting Spec City , Interest 
         public string CreateTargetingSpec(string countriesResponse, string interestsResponse)
         {
@@ -179,7 +182,6 @@ namespace backend.Services
 
         public async Task<ResponseVM<string>> GetCities(string query , string accessToken)
         {
-           
             var url = $"https://graph.facebook.com/v19.0/search";
             var queryParams = new Dictionary<string, string>
             {
@@ -251,6 +253,7 @@ namespace backend.Services
         }
 
         //generic function for targeting classes : interests, behaviors, demographics, life_events, industries, income, family_statuses, user_device, user_os
+        //get all (targetType = interests etc)
         public async Task<ResponseVM<List<AdTargetingCategory>>>SearchAdTargetingCategories(string accessToken, string apiVersion, string targetType)
         {
             var url = $"https://graph.facebook.com/v{apiVersion}/search?type=adTargetingCategory&class={targetType}&access_token={accessToken}";

@@ -17,6 +17,7 @@ namespace backend.Services.Interfaces
         Task<ResponseVM<AdCreative>> ProvideAdCreative(AdCreativeDto creative);
         Task<ResponseVM<AdCreative>> CreateAdCreative(AdCreativeDto creative);
         Task<ResponseVM<string>> GetCities(string query, string accessToken);
+        Task<string> GetInterests(string accessToken, string query);
         Task<ResponseVM<List<AdTargetingCategory>>> SearchAdTargetingCategories(string accessToken, string apiVersion, string targetType);
         Task<ResponseVM<string>> GetCampaignInsights(string campaignId, string accessToken);
         Task<ResponseVM<string>> GetAdAccountInsights(string adAccountId, string accessToken);
