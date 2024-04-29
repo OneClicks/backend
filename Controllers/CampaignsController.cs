@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using System.Globalization;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace backend.Controllers
 {
@@ -127,6 +128,24 @@ namespace backend.Controllers
                 Console.WriteLine(ex.ToString().Substring(0, 50));
                 _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
                 return StatusCode(503, "An error occurred while creating ad.");
+            }
+        }
+
+        [HttpGet("GetInterests")]
+        //[Authorize(Policy = "ApiKeyPolicy")]
+        public async Task<IActionResult> GetInterests([FromQuery] string accessToken, [FromQuery] string interests)
+        {
+            try
+            {
+                var data = await _facebookService.GetInterests(accessToken, interests);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred while getting interests");
             }
         }
     }

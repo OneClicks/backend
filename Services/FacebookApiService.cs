@@ -17,7 +17,7 @@ using backend.Services.API.Services;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Collections.Generic;
-
+using Microsoft.AspNetCore.Components.Forms;
 
 namespace backend.Services
 {
@@ -180,7 +180,7 @@ namespace backend.Services
             return JsonSerializer.Serialize(targetingSpec);
         }
 
-        public async Task<ResponseVM<string>> GetCities(string query , string accessToken)
+        public async Task<ResponseVM<List<LocationData>>> GetCities(string query , string accessToken)
         {
             var url = $"https://graph.facebook.com/v19.0/search";
             var queryParams = new Dictionary<string, string>
@@ -214,7 +214,7 @@ namespace backend.Services
                     CityName = data.GetProperty("name").GetString()
                 });
             }
-            return new ResponseVM<string> ("", "");
+            return new ResponseVM<List<LocationData>> ("200", "Successfully fetched cities", locations);
             
         }
 
@@ -284,7 +284,7 @@ namespace backend.Services
             return new ResponseVM<List<AdTargetingCategory>>("", "",adTargetingCategories);
         }
 
-        public async Task<string> GetInterests(string accessToken, string query)
+        public async Task<ResponseVM<List<Interest>>> GetInterests(string accessToken, string query)
         {
             var url = $"https://graph.facebook.com/v19.0/search?type=adinterest&q={query}&access_token={accessToken}";
 
@@ -296,8 +296,26 @@ namespace backend.Services
             }
 
             var content = await response.Content.ReadAsStringAsync();
+           var interestList = new List<Interest>();
+            using JsonDocument document = JsonDocument.Parse(content);
 
-            return content;
+            var interest = document.RootElement;
+            foreach (var temp in interest.GetProperty("data").EnumerateArray())
+            {
+                interestList.Add(new Interest
+                {
+                    id = long.Parse(temp.GetProperty("id").GetString()),
+                    name = temp.GetProperty("name").GetString()
+
+                });
+            }
+
+            if (content == null)
+            {
+                return new ResponseVM< List < Interest >> ("400", "Unable to fetch interests");
+            }
+
+            return new ResponseVM<List<Interest>>("200", "Successfully fetched interests", interestList);
         }
         public async Task<string> SearchAdInterest(string accessToken, string query, string apiVersion)
         {
