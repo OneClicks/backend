@@ -218,45 +218,11 @@ namespace backend.Services
             
         }
 
-        //public async Task<string> GetCities(string accessToken, string query)
-        //{
-        //    var url = $"https://graph.facebook.com/v19.0/search?type=adgeolocation&location_types=[\"country\"]&q={query}&access_token={accessToken}";
-
-        //    using (var httpClient = new HttpClient())
-        //    {
-        //        var response = await _httpClient.GetAsync(url);
-
-        //        if (!response.IsSuccessStatusCode)
-        //        {
-        //            throw new Exception($"Failed to get countries. Status code: {response.StatusCode}");
-        //        }
-
-        //        var content = await response.Content.ReadAsStringAsync();
-        //        return content;
-        //    }
-        //}
-        public class LocationData
-        {
-            public string Key { get; set; }
-            public string CityName { get; set; }
-            public string CountryName { get; set; }
-        }
-        public class AdTargetingCategory
-        {
-            public string Id { get; set; }
-            public string Name { get; set; }
-            public string Description { get; set; }
-            public string Type { get; set; }
-
-
-            // Add other properties as needed
-        }
-
         //generic function for targeting classes : interests, behaviors, demographics, life_events, industries, income, family_statuses, user_device, user_os
         //get all (targetType = interests etc)
-        public async Task<ResponseVM<List<AdTargetingCategory>>>SearchAdTargetingCategories(string accessToken, string apiVersion, string targetType)
+        public async Task<ResponseVM<List<AdTargetingCategory>>>SearchAdTargetingCategories(string accessToken, string targetType)
         {
-            var url = $"https://graph.facebook.com/v{apiVersion}/search?type=adTargetingCategory&class={targetType}&access_token={accessToken}";
+            var url = $"https://graph.facebook.com/v19.0/search?type=adTargetingCategory&class={targetType}&access_token={accessToken}";
 
             var response = await _httpClient.GetAsync(url);
 
@@ -281,7 +247,7 @@ namespace backend.Services
                 });
             }
 
-            return new ResponseVM<List<AdTargetingCategory>>("", "",adTargetingCategories);
+            return new ResponseVM<List<AdTargetingCategory>>("200", "Successfully fetch targeting categories",adTargetingCategories);
         }
 
         public async Task<ResponseVM<List<Interest>>> GetInterests(string accessToken, string query)
