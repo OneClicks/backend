@@ -180,7 +180,7 @@ namespace backend.Services
             return JsonSerializer.Serialize(targetingSpec);
         }
 
-        public async Task<ResponseVM<List<LocationData>>> GetCities(string query , string accessToken)
+        public async Task<ResponseVM<List<LocationData>>> GetCities(string accessToken, string query )
         {
             var url = $"https://graph.facebook.com/v19.0/search";
             var queryParams = new Dictionary<string, string>
