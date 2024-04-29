@@ -7,6 +7,9 @@ namespace backend.Service.Interfaces
     public interface IGoogleApiService
     {
 
-        Task<string> GetAllCampaigns(long customerId, string refre);
+        Task<string> GetAllCampaigns(long customerId);
+        Task<string> GetAccountHierarchy(long? customerId = null);
+        Task CreateCampaigns(long customerId);
+        void GetAccessibleAccounts();
     }
 }
