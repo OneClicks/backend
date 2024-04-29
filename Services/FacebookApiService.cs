@@ -85,7 +85,7 @@ namespace backend.Service
 
         public string CreateTargetingSpec(string countriesResponse, string interestsResponse)
         {
-            // Assume we have extracted the country code from the countriesResponse
+            // Assume we have extracted the country code from the +countriesResponse
             var countries = new List<string> { "US" };
 
             // Parse the interestsResponse to get the interest ID

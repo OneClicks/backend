@@ -9,6 +9,12 @@ using Google.Ads.GoogleAds.V16.Errors;
 using Google.Ads.GoogleAds;
 using Google.Ads.GoogleAds.V16.Resources;
 using Google.Api.Gax;
+using Google.Ads.Gax.Examples;
+using static Google.Ads.GoogleAds.V16.Resources.Campaign.Types;
+using static Google.Ads.GoogleAds.V16.Enums.CampaignStatusEnum.Types;
+using static Google.Ads.GoogleAds.V16.Enums.AdvertisingChannelTypeEnum.Types;
+using Google.Ads.GoogleAds.V16.Common;
+using static Google.Ads.GoogleAds.V16.Enums.BudgetDeliveryMethodEnum.Types;
 
 namespace backend.Service
 {
@@ -20,9 +26,44 @@ namespace backend.Service
         {
             _httpClient = httpClient;
         }
+        public async void GetAccessibleAccounts()
+        {
+            GoogleAdsConfig config = new GoogleAdsConfig()
+            {
+                DeveloperToken = Constants.GoogleDeveloperToken,
+                OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
+                OAuth2ClientId = Constants.GoogleClientId,
+                OAuth2ClientSecret = Constants.GoogleClientSecret,
+                OAuth2RefreshToken = "1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
+            };
+            GoogleAdsClient client = new GoogleAdsClient(config);
+
+            CustomerServiceClient customerService = client.GetService(Services.V16.CustomerService);
+
+            try
+            {
+                // Retrieve the list of customer resources.
+                string[] customerResourceNames = customerService.ListAccessibleCustomers();
+
+                // Display the result.
+                foreach (string customerResourceName in customerResourceNames)
+                {
+                    Console.WriteLine(
+                        $"Found customer with resource name = '{customerResourceName}'.");
+                }
+            }
+            catch (GoogleAdsException e)
+            {
+                Console.WriteLine("Failure:");
+                Console.WriteLine($"Message: {e.Message}");
+                Console.WriteLine($"Failure: {e.Failure}");
+                Console.WriteLine($"Request ID: {e.RequestId}");
+                throw;
+            }
+        }
 
 
-        public async Task<string> GetAllCampaigns(long customerId, string refre)
+        public async Task<string> CreateCustomer(long customerId)
         {
             GoogleAdsConfig config = new GoogleAdsConfig()
             {
@@ -78,7 +119,60 @@ namespace backend.Service
             }
             return "";
         }
-        public string GetAccountHierarchy(long? customerId = null)
+        public async Task<string> GetAllCampaigns(long customerId)
+        {
+            GoogleAdsConfig config = new GoogleAdsConfig()
+            {
+                DeveloperToken = Constants.GoogleDeveloperToken,
+                OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
+                OAuth2ClientId = Constants.GoogleClientId,
+                OAuth2ClientSecret = Constants.GoogleClientSecret,
+                OAuth2RefreshToken = "1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
+                LoginCustomerId = Constants.GoogleCustomerId.ToString()
+            };
+
+            GoogleAdsClient client = new GoogleAdsClient(config);
+
+            // Get the GoogleAdsService.
+
+            var googleAdsService = client.GetService(Services.V16.GoogleAdsService);
+
+            // Create a query that will retrieve all campaigns.
+
+            string query = @"SELECT
+                            campaign.id,
+                            campaign.name,
+                            campaign.network_settings.target_content_network
+                        FROM campaign
+                        ORDER BY campaign.id";
+
+            try
+            {
+                googleAdsService.SearchStream(customerId.ToString(), query,
+                    delegate (SearchGoogleAdsStreamResponse resp)
+                    {
+                        foreach (GoogleAdsRow googleAdsRow in resp.Results)
+                        {
+                            Console.WriteLine("Campaign with ID {0} and name '{1}' was found.",
+                                googleAdsRow.Campaign.Id, googleAdsRow.Campaign.Name);
+                        }
+                    }
+                );
+            }
+            catch (GoogleAdsException e)
+            {
+                Console.WriteLine("Failure:");
+                Console.WriteLine($"Message: {e.Message}");
+                Console.WriteLine($"Failure: {e.Failure}");
+                Console.WriteLine($"Request ID: {e.RequestId}");
+                throw;
+            }
+            return "";
+        }
+
+
+
+        public  async Task<string> GetAccountHierarchy(long? customerId = null)
         {
             GoogleAdsConfig config = new GoogleAdsConfig()
             {
@@ -187,7 +281,7 @@ namespace backend.Service
                 {
                     Console.WriteLine(
                         "Customer ID {0} is likely a test account, so its customer client " +
-                        " information cannot be retrieved.", managerCustomerId);
+                        " information cannot be retrieved.", customerId);
                 }
             }
 
@@ -196,7 +290,7 @@ namespace backend.Service
 
         private const int PAGE_SIZE = 1000;
 
-        private void PrintAccountHierarchy(CustomerClient customerClient,
+        private async void PrintAccountHierarchy(CustomerClient customerClient,
             Dictionary<long, List<CustomerClient>> customerIdsToChildAccounts, int depth)
         {
             if (depth == 0)
@@ -214,5 +308,116 @@ namespace backend.Service
                         depth + 1);
         }
 
+
+        public async Task CreateCampaigns(long customerId)
+        {
+            GoogleAdsConfig config = new GoogleAdsConfig()
+            {
+                DeveloperToken = Constants.GoogleDeveloperToken,
+                OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
+                OAuth2ClientId = Constants.GoogleClientId,
+                OAuth2ClientSecret = Constants.GoogleClientSecret,
+                OAuth2RefreshToken = "1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
+                LoginCustomerId = Constants.GoogleCustomerId.ToString()
+            };
+
+            GoogleAdsClient client = new GoogleAdsClient(config);
+            CampaignServiceClient campaignService = client.GetService(Services.V16.CampaignService);
+
+            // Create a budget to be used for the campaign.
+            string budget = CreateBudget(client, customerId);
+
+            List<CampaignOperation> operations = new List<CampaignOperation>();
+
+            Campaign campaign = new Campaign()
+            {
+                Name = "Interplanetary Cruise #" + ExampleUtilities.GetRandomString(),
+                AdvertisingChannelType = AdvertisingChannelType.Search,
+
+                // Recommendation: Set the campaign to PAUSED when creating it to prevent
+                // the ads from immediately serving. Set to ENABLED once you've added
+                // targeting and the ads are ready to serve
+                Status = CampaignStatus.Paused,
+
+                // Set the bidding strategy and budget.
+                ManualCpc = new ManualCpc(),
+                CampaignBudget = budget,
+
+                // Set the campaign network options.
+                NetworkSettings = new NetworkSettings
+                {
+                    TargetGoogleSearch = true,
+                    TargetSearchNetwork = true,
+                    // Enable Display Expansion on Search campaigns. See
+                    // https://support.google.com/google-ads/answer/7193800 to learn more.
+                    TargetContentNetwork = true,
+                    TargetPartnerSearchNetwork = false
+                },
+
+                // Optional: Set the start date.
+                StartDate = DateTime.Now.AddDays(1).ToString("yyyyMMdd"),
+
+                // Optional: Set the end date.
+                EndDate = DateTime.Now.AddYears(1).ToString("yyyyMMdd"),
+            };
+
+            // Create the operation.
+            operations.Add(new CampaignOperation() { Create = campaign });
+
+            try
+            {
+                // Add the campaigns.
+                MutateCampaignsResponse retVal = campaignService.MutateCampaigns(
+                    customerId.ToString(), operations);
+
+                // Display the results.
+                if (retVal.Results.Count > 0)
+                {
+                    foreach (MutateCampaignResult newCampaign in retVal.Results)
+                    {
+                        Console.WriteLine("Campaign with resource ID = '{0}' was added.",
+                            newCampaign.ResourceName);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No campaigns were added.");
+                }
+            }
+            catch (GoogleAdsException e)
+            {
+                Console.WriteLine("Failure:");
+                Console.WriteLine($"Message: {e.Message}");
+                Console.WriteLine($"Failure: {e.Failure}");
+                Console.WriteLine($"Request ID: {e.RequestId}");
+                throw;
+            }
+
+        }
+        private static string CreateBudget(GoogleAdsClient client, long customerId)
+        {
+            // Get the BudgetService.
+            CampaignBudgetServiceClient budgetService = client.GetService(
+                Services.V16.CampaignBudgetService);
+
+            // Create the campaign budget.
+            CampaignBudget budget = new CampaignBudget()
+            {
+                Name = "Interplanetary Cruise Budget #" + ExampleUtilities.GetRandomString(),
+                DeliveryMethod = BudgetDeliveryMethod.Standard,
+                AmountMicros = 500000
+            };
+
+            // Create the operation.
+            CampaignBudgetOperation budgetOperation = new CampaignBudgetOperation()
+            {
+                Create = budget
+            };
+
+            // Create the campaign budget.
+            MutateCampaignBudgetsResponse response = budgetService.MutateCampaignBudgets(
+                customerId.ToString(), new CampaignBudgetOperation[] { budgetOperation });
+            return response.Results[0].ResourceName;
+        }
     }
 }
