@@ -3,6 +3,7 @@ using backend.Entities;
 using backend.Services;
 using backend.Services.Interfaces;
 using backend.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
@@ -156,6 +157,23 @@ namespace backend.Controllers
             try
             {
                 var data = await _facebookService.SearchAdTargetingCategories(accessToken, targetType);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred while getting interests");
+            }
+        }
+        //[Authorize(Policy = "ApiKeyPolicy")]
+        [HttpGet("GetCities")]
+        public async Task<IActionResult> GetCities([FromQuery] string accessToken, [FromQuery] string query)
+        {
+            try
+            {
+                var data = await _facebookService.GetCities(accessToken, query);
                 _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
             }
