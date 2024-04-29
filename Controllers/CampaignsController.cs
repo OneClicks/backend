@@ -148,5 +148,23 @@ namespace backend.Controllers
                 return StatusCode(503, "An error occurred while getting interests");
             }
         }
+
+        //[Authorize(Policy = "ApiKeyPolicy")]
+        [HttpGet("GetTargetingCategory")]
+        public async Task<IActionResult> GetTargetingCategory([FromQuery] string accessToken, [FromQuery] string targetType)
+        {
+            try
+            {
+                var data = await _facebookService.SearchAdTargetingCategories(accessToken, targetType);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred while getting interests");
+            }
+        }
     }
 }

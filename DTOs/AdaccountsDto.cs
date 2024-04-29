@@ -32,5 +32,21 @@ namespace backend.DTOs
     {
         public List<string> countries { get; set; }
     }
+    public class LocationData
+    {
+        public string Key { get; set; }
+        public string CityName { get; set; }
+        public string CountryName { get; set; }
+    }
+    public class AdTargetingCategory
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string Type { get; set; }
+
+
+        // Add other properties as needed
+    }
 
 }
