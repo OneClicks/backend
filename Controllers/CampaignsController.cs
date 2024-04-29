@@ -169,11 +169,11 @@ namespace backend.Controllers
         }
         //[Authorize(Policy = "ApiKeyPolicy")]
         [HttpGet("GetCities")]
-        public async Task<IActionResult> GetCities([FromQuery] string accessToken, [FromQuery] string query)
+        public async Task<IActionResult> GetCities([FromQuery] string accessToken, [FromQuery] string city)
         {
             try
             {
-                var data = await _facebookService.GetCities(accessToken, query);
+                var data = await _facebookService.GetCities(accessToken, city);
                 _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
             }

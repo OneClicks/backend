@@ -30,7 +30,7 @@ namespace backend.DTOs
 
     public class GeoLocations
     {
-        public List<string> countries { get; set; }
+        public List<string> cities { get; set; }
     }
     public class LocationData
     {

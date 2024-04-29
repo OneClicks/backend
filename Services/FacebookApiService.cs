@@ -162,7 +162,7 @@ namespace backend.Services
         #endregion
 
         #region 2.get Targeting Spec City , Interest 
-        public string CreateTargetingSpec(string countriesResponse, string interestsResponse)
+/*        public string CreateTargetingSpec(string countriesResponse, string interestsResponse)
         {
             // Assume we have extracted the country code from the countriesResponse
             var countries = new List<string> { "US" };
@@ -178,7 +178,7 @@ namespace backend.Services
             };
 
             return JsonSerializer.Serialize(targetingSpec);
-        }
+        }*/
 
         public async Task<ResponseVM<List<LocationData>>> GetCities(string accessToken, string query )
         {
