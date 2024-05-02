@@ -181,7 +181,7 @@ namespace backend.Service
                 OAuth2ClientId = Constants.GoogleClientId,
                 OAuth2ClientSecret = Constants.GoogleClientSecret,
                 OAuth2RefreshToken = "1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
-                LoginCustomerId = Constants.GoogleCustomerId.ToString()
+                //LoginCustomerId = Constants.GoogleCustomerId.ToString()
             };
 
             GoogleAdsClient client = new GoogleAdsClient(config);
@@ -236,38 +236,50 @@ namespace backend.Service
                 while (unprocessedCustomerIds.Count > 0)
                 {
                     long managerCustomerId = unprocessedCustomerIds.Dequeue();
-                    PagedEnumerable<SearchGoogleAdsResponse, GoogleAdsRow> response =
+                    PagedEnumerable<SearchGoogleAdsResponse, GoogleAdsRow> response;
+                    try
+                    {
+                        response =
                         googleAdsServiceClient.Search(
                             managerCustomerId.ToString(),
                             query,
                             pageSize: PAGE_SIZE
                         );
 
-                    foreach (GoogleAdsRow googleAdsRow in response)
-                    {
-                        CustomerClient customerClient = googleAdsRow.CustomerClient;
-
-                        if (customerClient.Level == 0)
+                        foreach (GoogleAdsRow googleAdsRow in response)
                         {
-                            if (rootCustomerClient == null)
+                            CustomerClient customerClient = googleAdsRow.CustomerClient;
+
+                            if (customerClient.Level == 0)
                             {
-                                rootCustomerClient = customerClient;
+                                if (rootCustomerClient == null)
+                                {
+                                    rootCustomerClient = customerClient;
+                                }
+
+                                continue;
                             }
 
-                            continue;
+                            if (!customerIdsToChildAccounts.ContainsKey(managerCustomerId))
+                                customerIdsToChildAccounts.Add(managerCustomerId,
+                                    new List<CustomerClient>());
+
+                            customerIdsToChildAccounts[managerCustomerId].Add(customerClient);
+
+                            if (customerClient.Manager)
+                                if (!customerIdsToChildAccounts.ContainsKey(customerClient.Id) &&
+                                    customerClient.Level == 1)
+                                    unprocessedCustomerIds.Enqueue(customerClient.Id);
                         }
-
-                        if (!customerIdsToChildAccounts.ContainsKey(managerCustomerId))
-                            customerIdsToChildAccounts.Add(managerCustomerId,
-                                new List<CustomerClient>());
-
-                        customerIdsToChildAccounts[managerCustomerId].Add(customerClient);
-
-                        if (customerClient.Manager)
-                            if (!customerIdsToChildAccounts.ContainsKey(customerClient.Id) &&
-                                customerClient.Level == 1)
-                                unprocessedCustomerIds.Enqueue(customerClient.Id);
                     }
+                    catch(Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+
+                        throw;
+                    }
+
+                   
                 }
 
                 if (rootCustomerClient != null)
