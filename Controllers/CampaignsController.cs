@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using System.Globalization;
+using static Org.BouncyCastle.Bcpg.Attr.ImageAttrib;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace backend.Controllers
@@ -95,14 +96,31 @@ namespace backend.Controllers
             }
         }
 
+        [HttpGet("GetAllAdsets")]
+        public async Task<ActionResult<ResponseVM<Adset>>> GetAllAdsets()
+        {
+            try
+            {
+                var data = await _facebookService.GetAllAdsets();
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred fetching all categories");
+            }
+        }
+
         [HttpPost("CreateAdcreative")]
         //[Authorize(Policy = "ApiKeyPolicy")]
-        public async Task<ActionResult<ResponseVM<Adset>>> CreateAdCreative(AdCreativeDto creative )
+        public async Task<ActionResult<ResponseVM<AdCreative>>> CreateAdCreative(AdCreativeDto creative)
         {
             try
             {
                 creative.ImageFile = "D:\\TestPicture\\picture2.png";
-                var data = await _facebookService.ProvideAdCreative(creative);
+                var data = await _facebookService.CreateAdCreative(creative);
                 _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
             }
@@ -111,6 +129,40 @@ namespace backend.Controllers
                 Console.WriteLine(ex.ToString().Substring(0, 50));
                 _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
                 return StatusCode(503, "An error occurred while creating adcreative.");
+            }
+        }
+
+        [HttpPost("CreateAdImageHash")]
+        //[Authorize(Policy = "ApiKeyPolicy")]
+        public async Task<IActionResult> CreateAdImageHash([FromForm] AdImageDto imageInfo)
+        {
+            try
+            {
+                var data = await _facebookService.UploadFile(imageInfo);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString().Substring(0, 50));
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred while creating image hash.");
+            }
+        }
+        [HttpGet("GetAllAdcreatives")]
+        public async Task<ActionResult<ResponseVM<AdCreative>>> GetAllAdcreatives()
+        {
+            try
+            {
+                var data = await _facebookService.GetAllAdcreatives();
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred fetching all ad creatives");
             }
         }
 
