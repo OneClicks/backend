@@ -11,4 +11,18 @@
         public string AdAccountId { get; set; }
         public string AccessToken { get; set; }
     }
+    public class AdImageDto
+    {
+        public string AdAccountId { get; set; }
+        public IFormFile ImageFile { get; set; }
+        public string AccessToken { get; set; }
+
+    }
+
+    public class ImageHashDto
+    {
+        public string Hash { get; set; }
+
+    }
+
 }

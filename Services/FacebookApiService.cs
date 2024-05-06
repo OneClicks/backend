@@ -313,7 +313,7 @@ namespace backend.Services
                 interests = adset.Interests
             };
 
-            var targetingJson = JsonSerializer.Serialize(targetingSpec);
+        var targetingJson = JsonSerializer.Serialize(targetingSpec);
             // Create the ad set
             var url = $"https://graph.facebook.com/v19.0/act_{adset.AdAccountId}/adsets";
 
@@ -371,14 +371,24 @@ namespace backend.Services
         }
         #endregion
 
+        public async Task<ResponseVM<List<Adset>>> GetAllAdsets()
+        {
+            var adsets = await _adsetRepository.FetchAll();
+            if (adsets.Count == 0)
+            {
+                return new ResponseVM<List<Adset>>("404", "No Adset Found!");
+            }
+            return new ResponseVM<List<Adset>>("200", "Successfully fetched all adsets", adsets);
+        }
+
         #region 4. AD CREATIVE 
-        public async Task<ResponseVM<AdCreative>> ProvideAdCreative(AdCreativeDto creative)
+ /*       public async Task<ResponseVM<AdCreative>> ProvideAdCreative(AdCreativeDto creative)
         {
             creative.ImageHash = await UploadFile(creative.ImageFile, creative.AccessToken, creative.AdAccountId);
             var res = await CreateAdCreative(creative);
 
             return new ResponseVM<AdCreative>("200", "Successfully created adcreative", res.ResponseData);
-        }
+        }*/
         public async Task<ResponseVM<AdCreative>> CreateAdCreative(AdCreativeDto creative)
         {
             var url = $"https://graph.facebook.com/v19.0/act_{creative.AdAccountId}/adcreatives";
@@ -437,7 +447,8 @@ namespace backend.Services
             }
         }
 
-        public async Task<string> UploadFile(IFormFile imageFile, string accessToken, string adAccountId)
+  /*      public async Task<ResponseVM<string>> UploadFile(IFormFile imageFile, string adAccountId, string accessToken)
+            //(IFormFile imageFile, string accessToken, string adAccountId)
         {
             using (var httpClient = new HttpClient())
             {
@@ -457,38 +468,66 @@ namespace backend.Services
                 var responseContent = await response.Content.ReadAsStringAsync();
                 Console.WriteLine(responseContent);
                 using JsonDocument document = JsonDocument.Parse(responseContent);
-                var imageData = document.RootElement.GetProperty("images").GetProperty(imageFile.FileName);
+                var imageData = document.RootElement.GetProperty("images").GetProperty(imageFile.Name);
                 var imageHash = imageData.GetProperty("hash").GetString();
-
-                return imageHash.ToString();
-            }
-        }
-        public async Task<string> UploadFile(string imagePath, string accessToken, string adAccountId)
-        {
-            using (var httpClient = new HttpClient())
-            {
-                var formData = new MultipartFormDataContent();
-                var fileStream = File.OpenRead(imagePath);
-                formData.Add(new StreamContent(fileStream), "filename", Path.GetFileName(imagePath));
-                formData.Add(new StringContent(accessToken), "access_token");
-
-                var url = $"https://graph.facebook.com/v19.0/act_{adAccountId}/adimages";
-
-                var response = await httpClient.PostAsync(url, formData);
-
-                if (!response.IsSuccessStatusCode)
+                if (imageHash != null)
                 {
-                    throw new Exception($"Failed to upload file. Status code: {response.StatusCode}");
+                    return new ResponseVM<string>("404", "Successfully created image hash", imageHash.ToString());
                 }
 
-                var responseContent = await response.Content.ReadAsStringAsync();
-                Console.WriteLine(responseContent);
-                using JsonDocument document = JsonDocument.Parse(responseContent);
-                var imageData = document.RootElement.GetProperty("images").GetProperty(Path.GetFileName(imagePath));
-                var imageHash = imageData.GetProperty("hash").GetString();
-
-                return imageHash.ToString();
+                return new ResponseVM<string>("404", "Couldnt create image hash");
             }
+        }*/
+        public async Task<ResponseVM<string>> UploadFile(AdImageDto imageInfo)
+        {
+            if (imageInfo.ImageFile != null)
+            {
+              //  IFormFile file = Speckle.Newtonsoft.Json.JsonConvert.DeserializeObject<IFormFile>(imageInfo.ImageFile);
+
+                using (var httpClient = new HttpClient())
+                {
+                    var formData = new MultipartFormDataContent();
+                    var fileStream = File.OpenRead(imageInfo.ImageFile.Name);
+                    formData.Add(new StreamContent(fileStream), "filename", imageInfo.ImageFile.Name);
+                    formData.Add(new StringContent(imageInfo.AccessToken), "access_token");
+
+                    var url = $"https://graph.facebook.com/v19.0/act_{imageInfo.AdAccountId}/adimages";
+
+                    var response = await httpClient.PostAsync(url, formData);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"Failed to upload file. Status code: {response.StatusCode}");
+                    }
+
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine(responseContent);
+                    using JsonDocument document = JsonDocument.Parse(responseContent);
+                    var imageData = document.RootElement.GetProperty("images").GetProperty(imageInfo.ImageFile.Name);
+                    var imageHash = imageData.GetProperty("hash").GetString();
+
+                    if (imageHash != null)
+                    {
+                        return new ResponseVM<string>("200", "Successfully created image hash", imageHash.ToString());
+                    }
+
+                    return new ResponseVM<string>("404", "Couldnt create image hash");
+                }
+            }
+            else
+            {
+                return new ResponseVM<string>("404", "File not found");
+            }
+        }
+
+        public async Task<ResponseVM<List<AdCreative>>> GetAllAdcreatives()
+        {
+            var adcreative = await _adcreativeRepository.FetchAll();
+            if (adcreative.Count == 0)
+            {
+                return new ResponseVM<List<AdCreative>>("404", "No Adcreatives Found!");
+            }
+            return new ResponseVM<List<AdCreative>>("200", "Successfully fetched all adcreatives", adcreative);
         }
         #endregion
 

@@ -1,4 +1,5 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
+using Org.BouncyCastle.Crmf;
 
 namespace backend.DTOs
 {
@@ -30,7 +31,11 @@ namespace backend.DTOs
 
     public class GeoLocations
     {
-        public List<string> cities { get; set; }
+        public List<Cities> cities { get; set; }
+    }
+    public class Cities
+    {
+        public string key  { get; set; }
     }
     public class LocationData
     {
