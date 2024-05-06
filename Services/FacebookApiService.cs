@@ -310,7 +310,8 @@ namespace backend.Services
             var targetingSpec = new Targeting
             {
                 geo_locations = adset.Geolocations,
-                interests = adset.Interests
+                interests = adset.Interests, 
+                industries = adset.Industries
             };
 
         var targetingJson = JsonSerializer.Serialize(targetingSpec);
@@ -328,7 +329,6 @@ namespace backend.Services
             formData.Add(new StringContent(adset.StartTime), "start_time");
             formData.Add(new StringContent(adset.Status), "status");
             formData.Add(new StringContent(adset.AccessToken), "access_token");
-
 
             using (var httpClient = new HttpClient())
             {
