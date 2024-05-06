@@ -27,15 +27,16 @@ namespace backend.DTOs
     {
         public GeoLocations geo_locations { get; set; }
         public List<Interest> interests { get; set; }
+        public List<Interest> industries { get; set; }
+    }
+    public class Cities
+    {
+        public string key { get; set; }
     }
 
     public class GeoLocations
     {
         public List<Cities> cities { get; set; }
-    }
-    public class Cities
-    {
-        public string key  { get; set; }
     }
     public class LocationData
     {
