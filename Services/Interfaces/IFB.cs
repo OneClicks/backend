@@ -24,5 +24,7 @@ namespace backend.Services.Interfaces
         Task<ResponseVM<string>> GetCampaignInsights(string campaignId, string accessToken);
         Task<ResponseVM<string>> GetAdAccountInsights(string adAccountId, string accessToken);
 
+        Task<ResponseVM<object>> GetAdSetData(string accessToken, string adAccountId);
+
     }
 }

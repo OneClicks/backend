@@ -285,5 +285,22 @@ namespace backend.Controllers
                 return StatusCode(503, "An error occurred while getting ads payload");
             }
         }
+
+        [HttpGet("GetAdSetData")]
+        public async Task<IActionResult> GetAdSetData([FromQuery] string accessToken, [FromQuery] string adAccountId)
+        {
+            try
+            {
+                var data = await _facebookService.GetAdSetData(accessToken, adAccountId);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred while getting ads payload");
+            }
+        }
     }
 }

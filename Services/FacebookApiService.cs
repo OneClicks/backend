@@ -105,6 +105,40 @@ namespace backend.Services
         }
 
         #region 1. create campaign
+        public async Task<ResponseVM<object>> GetCampaignData(string accessToken, string adAccountId)
+        {
+            using (var httpClient = new HttpClient())
+            {
+                var url = $"https://graph.facebook.com/v18.0/{adAccountId}?fields=campaigns{{name,id,objective,status}}&access_token={accessToken}";
+
+                var response = await httpClient.GetAsync(url);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception($"Failed to fetch campaign data. Status code: {response.StatusCode}");
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                using JsonDocument document = JsonDocument.Parse(responseContent);
+
+                var campaigns = document.RootElement.GetProperty("campaigns").GetProperty("data");
+
+                var campaignData = new List<object>();
+                foreach (var campaign in campaigns.EnumerateArray())
+                {
+                    campaignData.Add(new
+                    {
+                        Name = campaign.GetProperty("name").GetString(),
+                        Id = campaign.GetProperty("id").GetString(),
+                        Objective = campaign.GetProperty("objective").GetString(),
+                        Status = campaign.GetProperty("status").GetString()
+                    });
+                }
+
+                return new ResponseVM<object>("200", "Campaign data fetched", campaignData);
+            }
+        }
+
         public async Task<ResponseVM<HttpResponseMessage>> CreateCampaign(CampaignDto campaign)
         {
             try
@@ -369,6 +403,45 @@ namespace backend.Services
 
             }   
         }
+
+        public async Task<ResponseVM<object>> GetAdSetData(string accessToken, string adAccountId)
+        {
+            using (var httpClient = new HttpClient())
+            {
+                var url = $"https://graph.facebook.com/v18.0/{adAccountId}?fields=adsets{{account_id,campaign_id,daily_budget,targeting,optimization_goal,status,start_time,name}}&access_token={accessToken}";
+
+                var response = await httpClient.GetAsync(url);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception($"Failed to fetch ad set data. Status code: {response.StatusCode}");
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                using JsonDocument document = JsonDocument.Parse(responseContent);
+
+                var adSets = document.RootElement.GetProperty("adsets").GetProperty("data");
+
+                var adSetData = new List<object>();
+                foreach (var adSet in adSets.EnumerateArray())
+                {
+                    adSetData.Add(new
+                    {
+                        AccountId = adSet.GetProperty("account_id").GetString(),
+                        CampaignId = adSet.GetProperty("campaign_id").GetString(),
+                        DailyBudget = adSet.GetProperty("daily_budget").GetString(),
+                        Targeting = adSet.GetProperty("targeting").GetString(),
+                        OptimizationGoal = adSet.GetProperty("optimization_goal").GetString(),
+                        Status = adSet.GetProperty("status").GetString(),
+                        StartTime = adSet.GetProperty("start_time").GetString(),
+                        Name = adSet.GetProperty("name").GetString()
+                    });
+                }
+
+                return new ResponseVM<object>("200", "Ad set data fetched", adSetData);
+            }
+        }
+
         #endregion
 
         public async Task<ResponseVM<List<Adset>>> GetAllAdsets()
