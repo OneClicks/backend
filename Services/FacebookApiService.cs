@@ -493,6 +493,67 @@ namespace backend.Services
         #endregion
 
         #region 5. Schedule Delivery of AD
+        public async Task<ResponseVM<object>> GetPayloadForAd(string accessToken, string adAccountId)
+        {
+
+            using (var httpClient = new HttpClient())
+            {
+                var url = $"https://graph.facebook.com/v18.0/act_{adAccountId}?fields=adcreatives{{name}},campaigns{{name}},adsets{{name}}&access_token={accessToken}";
+
+                var response = await httpClient.GetAsync(url);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception($"Failed to fetch user data. Status code: {response.StatusCode}");
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                using JsonDocument document = JsonDocument.Parse(responseContent);
+                var adCreativeData = new List<object>();
+                var adCreativeArray = document.RootElement.GetProperty("adcreatives").GetProperty("data");
+                foreach (var item in adCreativeArray.EnumerateArray())
+                {
+                    adCreativeData.Add(new
+                    {
+                        Id = item.GetProperty("id").GetString(),
+                        Name = item.GetProperty("name").GetString()
+                    });
+                }
+
+                var campaignData = new List<object>();
+                var campaignArray = document.RootElement.GetProperty("campaigns").GetProperty("data");
+                foreach (var item in campaignArray.EnumerateArray())
+                {
+                    campaignData.Add(new
+                    {
+                        Id = item.GetProperty("id").GetString(),
+                        Name = item.GetProperty("name").GetString()
+                    });
+                }
+
+                var adSetData = new List<object>();
+                var adSetArray = document.RootElement.GetProperty("adsets").GetProperty("data");
+                foreach (var item in adSetArray.EnumerateArray())
+                {
+                    adSetData.Add(new
+                    {
+                        Id = item.GetProperty("id").GetString(),
+                        Name = item.GetProperty("name").GetString()
+                    });
+                }
+
+                var responseDto = new
+                {
+                    campaignData = campaignData,
+                    adSetData = adSetData,
+                    adCreativeData = adCreativeData
+                };
+
+                return new ResponseVM<object>("200", "Ad scheduled", responseDto);
+
+            }
+        }
+
         public async Task<ResponseVM<string>> ScheduleDelivery(AdDto ad)
         {
             var url = $"https://graph.facebook.com/v19.0/act_{ad.AdAccountId}/ads";
@@ -522,6 +583,7 @@ namespace backend.Services
                 }
 
                 var responseContent = await response.Content.ReadAsStringAsync();
+                return new ResponseVM<string>("200", "Ad scheduled", responseContent); 
 
                 var adDto = new Ad
                 {

@@ -1,9 +1,8 @@
-﻿using backend.DTOs;
+﻿
+
+using backend.DTOs;
 using backend.Entities;
 using backend.ViewModels;
-using Microsoft.AspNetCore.Mvc;
-using System.Globalization;
-using static backend.Services.FacebookApiService;
 
 namespace backend.Services.Interfaces
 {
@@ -15,6 +14,7 @@ namespace backend.Services.Interfaces
         Task<ResponseVM<List<Adset>>> GetAllAdsets();
         Task<ResponseVM<string>> ScheduleDelivery(AdDto ad);
         Task<ResponseVM<List<Campaigns>>> GetAllCampaigns();
+        Task<ResponseVM<object>> GetPayloadForAd(string accessToken, string adAccountId);
         Task<ResponseVM<AdCreative>> CreateAdCreative(AdCreativeDto creative);
         Task<ResponseVM<string>> UploadFile(string accessToken, IFormFile imageFile, string adAccountId);
         Task<ResponseVM<List<LocationData>>> GetCities(string accessToken, string query);

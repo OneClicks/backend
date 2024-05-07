@@ -34,7 +34,40 @@ namespace backend.Controllers
                 var data = await _facebookService.GetCities("Un", "EAAKbj1ZAaEcgBOxoDtv1ZABZACPu4bQsi8u5OfypNAkCIieC9gp6VQQZAKqL1MeBgDZBhheEjsMnocD1LsD5kheGI4dZC9mDoYHbL9Fkwbp2K7HvEwFZB0nJn62O2EOwjCsGFHsH3JAjUVsVKCKPZAMZAM9sZA6MV8a9QbwlXLa5ulTvGcoX7GFiaW31QwjEW4bjEg1mSmZC63e2z8bo6GImQZDZD");
                 _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
-            }
+            
+
+                //    var clientSecrets = new ClientSecrets
+                //    {
+                //        ClientId = "195870252277-kgqnfto3d27fhvvhivk7m3ikfkc4qhvl.apps.googleusercontent.com",
+                //        ClientSecret = "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"
+                //    };
+
+                //var tokenRequestContent = new MultipartFormDataContent
+                //{
+                //    { new StringContent(code), "code" },
+                //    { new StringContent(clientSecrets.ClientId), "client_id" },
+                //    { new StringContent(clientSecrets.ClientSecret), "client_secret" },
+                //    { new StringContent("https://localhost:3000"), "redirect_uri" },
+                //    { new StringContent("authorization_code"), "grant_type" }
+                //};
+
+
+                //var response = await _httpClientFactory.PostAsync("https://oauth2.googleapis.com/token", tokenRequestContent);
+                //    var responseContent = await response.Content.ReadAsStringAsync();
+
+                //using JsonDocument document = JsonDocument.Parse(responseContent);
+
+                //var res = document.RootElement.GetProperty("refresh_token").GetString();
+
+                //await googleApiService.GetAllCampaigns(2989534382);
+                //googleApiService.GetAccountHierarchy(4520819258);
+                _facebookService.GetPayloadForAd("EAAKbj1ZAaEcgBOzgG9DeUkA21hYPQjCuu5KZBrZCQbYqim7zdZBxkZCCqjrx1R55FUdMU6MfEDXX2rydsINtZBsdcSAWshxVIjdobgAgEBg9xkca82QFGlFcBA1AiMagfUU9WS3PCjCTYD1gnan0rZCGHrRJdE0hxa7q6PqctJoxLgzbZA6Dyi2tey8q9GZCPTFWfEq7oqYSHKQr15DfkxwZDZD", "act_1295877481040276");
+
+                return Ok();
+                    //var data = await _facebookService.GetCities("Un", "EAAKbj1ZAaEcgBOxoDtv1ZABZACPu4bQsi8u5OfypNAkCIieC9gp6VQQZAKqL1MeBgDZBhheEjsMnocD1LsD5kheGI4dZC9mDoYHbL9Fkwbp2K7HvEwFZB0nJn62O2EOwjCsGFHsH3JAjUVsVKCKPZAMZAM9sZA6MV8a9QbwlXLa5ulTvGcoX7GFiaW31QwjEW4bjEg1mSmZC63e2z8bo6GImQZDZD");
+                    //_logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                    //return Ok(data);
+             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString().Substring(0, 50));
@@ -237,11 +270,11 @@ namespace backend.Controllers
         }
 
         [HttpGet("GetAllAdsPayload")]
-        public async Task<IActionResult> GetAllAdsPayload([FromQuery] string accessToken, [FromQuery] string adAccountId, [FromQuery] string pageId)
+        public async Task<IActionResult> GetAllAdsPayload([FromQuery] string accessToken, [FromQuery] string adAccountId)
         {
             try
             {
-                var data = await _facebookService.GetAllAdsPayload(accessToken, adAccountId, pageId);
+                var data = await _facebookService.GetPayloadForAd(accessToken, adAccountId);
                 _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
             }
