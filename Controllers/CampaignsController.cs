@@ -119,7 +119,7 @@ namespace backend.Controllers
         {
             try
             {
-                creative.ImageFile = "D:\\TestPicture\\picture2.png";
+             //   creative.ImageFile = "D:\\TestPicture\\picture2.png";
                 var data = await _facebookService.CreateAdCreative(creative);
                 _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
@@ -132,13 +132,13 @@ namespace backend.Controllers
             }
         }
 
-        [HttpPost("CreateAdImageHash")]
+        [HttpPut("CreateAdImageHash/{adAccountId}")]
         //[Authorize(Policy = "ApiKeyPolicy")]
-        public async Task<IActionResult> CreateAdImageHash([FromForm] AdImageDto imageInfo)
+        public async Task<IActionResult> CreateAdImageHash([FromQuery] string accessToken, [FromForm] IFormFile imageFile, string adAccountId)
         {
             try
             {
-                var data = await _facebookService.UploadFile(imageInfo);
+                var data = await _facebookService.UploadFile(accessToken, imageFile, adAccountId);
                 _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
             }
@@ -168,7 +168,7 @@ namespace backend.Controllers
 
         [HttpPost("ScheduleAd")]
         //[Authorize(Policy = "ApiKeyPolicy")]
-        public async Task<ActionResult<ResponseVM<Adset>>> CreateAd(AdDto ad)
+        public async Task<IActionResult> CreateAd(AdDto ad)
         {
             try
             {
@@ -234,6 +234,23 @@ namespace backend.Controllers
                 Console.WriteLine(ex.ToString());
                 _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
                 return StatusCode(503, "An error occurred while getting interests");
+            }
+        }
+
+        [HttpGet("GetAllAdsPayload")]
+        public async Task<IActionResult> GetAllAdsPayload([FromQuery] string accessToken, [FromQuery] string adAccountId, [FromQuery] string pageId)
+        {
+            try
+            {
+                var data = await _facebookService.GetAllAdsPayload(accessToken, adAccountId, pageId);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred while getting ads payload");
             }
         }
     }

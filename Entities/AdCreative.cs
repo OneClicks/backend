@@ -20,6 +20,9 @@ namespace backend.Entities
 
         [BsonElement("AdsetId")]
         public string AdsetId { get; set; }
+        
+        [BsonElement("FileName")]
+        public string FileName { get; set; }
 
         [BsonElement("ImageHash")]
         public string ImageHash { get; set; }
