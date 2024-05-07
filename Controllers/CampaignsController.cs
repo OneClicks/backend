@@ -129,7 +129,7 @@ namespace backend.Controllers
             }
         }
 
-        [HttpGet("GetAllAdsets")]
+/*        [HttpGet("GetAllAdsets")]
         public async Task<ActionResult<ResponseVM<Adset>>> GetAllAdsets()
         {
             try
@@ -144,7 +144,7 @@ namespace backend.Controllers
                 _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
                 return StatusCode(503, "An error occurred fetching all categories");
             }
-        }
+        }*/
 
         [HttpPost("CreateAdcreative")]
         //[Authorize(Policy = "ApiKeyPolicy")]
@@ -286,8 +286,8 @@ namespace backend.Controllers
             }
         }
 
-        [HttpGet("GetAdSetData")]
-        public async Task<IActionResult> GetAdSetData([FromQuery] string accessToken, [FromQuery] string adAccountId)
+        [HttpGet("GetAllAdsets")]
+        public async Task<IActionResult> GetAllAdsets([FromQuery] string accessToken, [FromQuery] string adAccountId)
         {
             try
             {

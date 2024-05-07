@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Components.Forms;
+using System.Xml.Linq;
 
 namespace backend.Services
 {
@@ -109,7 +110,7 @@ namespace backend.Services
         {
             using (var httpClient = new HttpClient())
             {
-                var url = $"https://graph.facebook.com/v18.0/{adAccountId}?fields=campaigns{{name,id,objective,status}}&access_token={accessToken}";
+                var url = $"https://graph.facebook.com/v18.0/act_{adAccountId}?fields=campaigns{{name,id,objective,status}}&access_token={accessToken}";
 
                 var response = await httpClient.GetAsync(url);
 
@@ -128,8 +129,8 @@ namespace backend.Services
                 {
                     campaignData.Add(new
                     {
-                        Name = campaign.GetProperty("name").GetString(),
-                        Id = campaign.GetProperty("id").GetString(),
+                        CampaignName = campaign.GetProperty("name").GetString(),
+                        CampaignId = campaign.GetProperty("id").GetString(),
                         Objective = campaign.GetProperty("objective").GetString(),
                         Status = campaign.GetProperty("status").GetString()
                     });
@@ -408,7 +409,7 @@ namespace backend.Services
         {
             using (var httpClient = new HttpClient())
             {
-                var url = $"https://graph.facebook.com/v18.0/{adAccountId}?fields=adsets{{account_id,campaign_id,daily_budget,targeting,optimization_goal,status,start_time,name}}&access_token={accessToken}";
+                var url = $"https://graph.facebook.com/v18.0/act_{adAccountId}?fields=adsets{{account_id,campaign_id,daily_budget,targeting,optimization_goal,status,start_time,name}}&access_token={accessToken}";
 
                 var response = await httpClient.GetAsync(url);
 
@@ -427,14 +428,13 @@ namespace backend.Services
                 {
                     adSetData.Add(new
                     {
-                        AccountId = adSet.GetProperty("account_id").GetString(),
+                        AdAccountId = adSet.GetProperty("account_id").GetString(),
                         CampaignId = adSet.GetProperty("campaign_id").GetString(),
-                        DailyBudget = adSet.GetProperty("daily_budget").GetString(),
-                        Targeting = adSet.GetProperty("targeting").GetString(),
+                        DailyBudget = int.Parse(adSet.GetProperty("daily_budget").GetString()),
                         OptimizationGoal = adSet.GetProperty("optimization_goal").GetString(),
                         Status = adSet.GetProperty("status").GetString(),
                         StartTime = adSet.GetProperty("start_time").GetString(),
-                        Name = adSet.GetProperty("name").GetString()
+                        AdsetName = adSet.GetProperty("name").GetString()
                     });
                 }
 
@@ -571,7 +571,7 @@ namespace backend.Services
 
             using (var httpClient = new HttpClient())
             {
-                var url = $"https://graph.facebook.com/v18.0/act_{adAccountId}?fields=adcreatives{{name}},campaigns{{name}},adsets{{name}}&access_token={accessToken}";
+                var url = $"https://graph.facebook.com/v18.0/act_{adAccountId}?fields=adcreatives{{name}},campaigns{{name}},adsets{{name, campaign_id}}&access_token={accessToken}";
 
                 var response = await httpClient.GetAsync(url);
 
@@ -600,7 +600,8 @@ namespace backend.Services
                     campaignData.Add(new
                     {
                         Id = item.GetProperty("id").GetString(),
-                        Name = item.GetProperty("name").GetString()
+                        Name = item.GetProperty("name").GetString(),
+                        CampaignId = item.GetProperty("campaign_id").GetString()
                     });
                 }
 
