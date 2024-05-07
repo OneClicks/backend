@@ -96,11 +96,11 @@ namespace backend.Controllers
         }
 
         [HttpGet("GetAllCampaigns")]
-        public async Task<ActionResult<ResponseVM<Campaigns>>> GetAllCampaigns()
+        public async Task<IActionResult> GetAllCampaigns([FromQuery] string accessToken, [FromQuery] string adAccountId)
         {
             try
             {
-                var data = await _facebookService.GetAllCampaigns(); 
+                var data = await _facebookService.GetCampaignData(accessToken,adAccountId); 
                 _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
             }
