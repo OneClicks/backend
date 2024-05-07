@@ -119,7 +119,6 @@ namespace backend.Controllers
         {
             try
             {
-             //   creative.ImageFile = "D:\\TestPicture\\picture2.png";
                 var data = await _facebookService.CreateAdCreative(creative);
                 _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
