@@ -396,7 +396,7 @@ namespace backend.Services
 
             var requestBody = new
             {
-                name = "Sample Creative SandBox",
+                name = creative.CreativeName,
                 object_story_spec = new
                 {
                     page_id = creative.PageId,
@@ -431,24 +431,26 @@ namespace backend.Services
                 {
                     throw new Exception($"Failed to create ad creative. Status code: {response.StatusCode}");
                 }
+                var responseContent = await response.Content.ReadAsStringAsync();
+
                 var adcreativeObj = new AdCreative
                 { 
-                    CreativeId = creative.CreativeId,
+                    CreativeId = responseContent,
                     CreativeName = creative.CreativeName,
                     AdsetId = creative.AdsetId,
                     AccessToken = creative.AccessToken,
-                    ImageFile = creative.ImageFile,
+                    Message = creative.Message,
+                    FileName = creative.FileName,
                     ImageHash = creative.ImageHash,
                 };
-                var responseContent = await response.Content.ReadAsStringAsync();
                 var responseCreative = await _adcreativeRepository.Create(adcreativeObj);
                 
                 return new ResponseVM<AdCreative>("200", "Successfully created adcreative", responseCreative);                               
             }
         }
 
-  /*      public async Task<ResponseVM<string>> UploadFile(IFormFile imageFile, string adAccountId, string accessToken)
-            //(IFormFile imageFile, string accessToken, string adAccountId)
+        public async Task<ResponseVM<string>> UploadFile(string accessToken, IFormFile imageFile, string adAccountId)
+        //(IFormFile imageFile, string accessToken, string adAccountId)
         {
             using (var httpClient = new HttpClient())
             {
@@ -468,55 +470,14 @@ namespace backend.Services
                 var responseContent = await response.Content.ReadAsStringAsync();
                 Console.WriteLine(responseContent);
                 using JsonDocument document = JsonDocument.Parse(responseContent);
-                var imageData = document.RootElement.GetProperty("images").GetProperty(imageFile.Name);
+                var imageData = document.RootElement.GetProperty("images").GetProperty(imageFile.FileName);
                 var imageHash = imageData.GetProperty("hash").GetString();
                 if (imageHash != null)
                 {
-                    return new ResponseVM<string>("404", "Successfully created image hash", imageHash.ToString());
+                    return new ResponseVM<string>("200", "Successfully created image hash", imageHash.ToString());
                 }
 
                 return new ResponseVM<string>("404", "Couldnt create image hash");
-            }
-        }*/
-        public async Task<ResponseVM<string>> UploadFile(AdImageDto imageInfo)
-        {
-            if (imageInfo.ImageFile != null)
-            {
-              //  IFormFile file = Speckle.Newtonsoft.Json.JsonConvert.DeserializeObject<IFormFile>(imageInfo.ImageFile);
-
-                using (var httpClient = new HttpClient())
-                {
-                    var formData = new MultipartFormDataContent();
-                    var fileStream = File.OpenRead(imageInfo.ImageFile.Name);
-                    formData.Add(new StreamContent(fileStream), "filename", imageInfo.ImageFile.Name);
-                    formData.Add(new StringContent(imageInfo.AccessToken), "access_token");
-
-                    var url = $"https://graph.facebook.com/v19.0/act_{imageInfo.AdAccountId}/adimages";
-
-                    var response = await httpClient.PostAsync(url, formData);
-
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        throw new Exception($"Failed to upload file. Status code: {response.StatusCode}");
-                    }
-
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine(responseContent);
-                    using JsonDocument document = JsonDocument.Parse(responseContent);
-                    var imageData = document.RootElement.GetProperty("images").GetProperty(imageInfo.ImageFile.Name);
-                    var imageHash = imageData.GetProperty("hash").GetString();
-
-                    if (imageHash != null)
-                    {
-                        return new ResponseVM<string>("200", "Successfully created image hash", imageHash.ToString());
-                    }
-
-                    return new ResponseVM<string>("404", "Couldnt create image hash");
-                }
-            }
-            else
-            {
-                return new ResponseVM<string>("404", "File not found");
             }
         }
 

@@ -16,7 +16,7 @@ namespace backend.Services.Interfaces
         Task<ResponseVM<string>> ScheduleDelivery(AdDto ad);
         Task<ResponseVM<List<Campaigns>>> GetAllCampaigns();
         Task<ResponseVM<AdCreative>> CreateAdCreative(AdCreativeDto creative);
-        Task<ResponseVM<string>> UploadFile(AdImageDto imageInfo);
+        Task<ResponseVM<string>> UploadFile(string accessToken, IFormFile imageFile, string adAccountId);
         Task<ResponseVM<List<LocationData>>> GetCities(string accessToken, string query);
         Task<ResponseVM<List<Interest>>> GetInterests(string accessToken, string query);
         Task<ResponseVM<List<AdCreative>>> GetAllAdcreatives();
