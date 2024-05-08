@@ -6,10 +6,11 @@ namespace backend.Service.Interfaces
 {
     public interface IGoogleApiService
     {
+        Task<ResponseVM<string>> GetRefreshToken(string code);
 
         Task<string> GetAllCampaigns(long customerId);
-        Task<string> GetAccountHierarchy(long? customerId = null);
+        Task<ResponseVM<List<AccountHierarchyDto>>> GetAccountHierarchy(string refreshToken, long? customerId = null);
         Task CreateCampaigns(long customerId);
-        void GetAccessibleAccounts();
+        Task<ResponseVM<object>> GetAccessibleAccounts(string v);
     }
 }
