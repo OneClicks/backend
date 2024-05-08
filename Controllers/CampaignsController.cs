@@ -61,7 +61,7 @@ namespace backend.Controllers
                 //var res = document.RootElement.GetProperty("refresh_token").GetString();
 
                 //await googleApiService.GetAllCampaigns(2989534382);
-                 googleApiService.GetAccountHierarchy(4520819258);
+                 //googleApiService.GetAccountHierarchy(4520819258);
 
                 return Ok();
                     //var data = await _facebookService.GetCities("Un", "EAAKbj1ZAaEcgBOxoDtv1ZABZACPu4bQsi8u5OfypNAkCIieC9gp6VQQZAKqL1MeBgDZBhheEjsMnocD1LsD5kheGI4dZC9mDoYHbL9Fkwbp2K7HvEwFZB0nJn62O2EOwjCsGFHsH3JAjUVsVKCKPZAMZAM9sZA6MV8a9QbwlXLa5ulTvGcoX7GFiaW31QwjEW4bjEg1mSmZC63e2z8bo6GImQZDZD");
