@@ -20,8 +20,8 @@ namespace backend.Controllers
             _logger = logger;
         }
 
-        [HttpGet("GetRefreshToken/{code}")]
-        public async Task<IActionResult> GetAllCampaigns(string code)
+        [HttpGet("GetRefreshToken")]
+        public async Task<IActionResult> GetRefreshToken([FromQuery] string code)
         {
             try
             {
@@ -36,8 +36,24 @@ namespace backend.Controllers
                 return StatusCode(503, "An error occurred fetching all categories");
             }
         }
-        [HttpGet("GetManagerAcccounts")]
-        public async Task<IActionResult> GetAccountHierarchy(string refreshToken)
+        [HttpGet("RevokeToken/{code}")]
+        public async Task<IActionResult> RevokeToken(string code)
+        {
+            try
+            {
+                var data = await _googleApiService.RevokeToken(code);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred fetching all categories");
+            }
+        }
+        [HttpGet("GetManagerAccounts")]
+        public async Task<IActionResult> GetManagerAccounts([FromQuery] string refreshToken)
         {
             try
             {
@@ -52,6 +68,23 @@ namespace backend.Controllers
                 return StatusCode(503, "An error occurred fetching all categories");
             }
         }
-
+        [HttpGet("GetClientAccounts")]
+        public async Task<IActionResult> GetClientAccounts([FromQuery] string refreshToken, [FromQuery] string customerId)
+        {
+            try
+            {
+                string idPart = customerId.Split('/')[1]; // Split the string by '/' and take the second part
+                long id = long.Parse(idPart); // Parse the ID part as a long
+                var data = await _googleApiService.GetAccountHierarchy(refreshToken, id);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred fetching all categories");
+            }
+        }
     }
 }
