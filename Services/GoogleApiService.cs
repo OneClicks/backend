@@ -18,6 +18,8 @@ using static Google.Ads.GoogleAds.V16.Enums.BudgetDeliveryMethodEnum.Types;
 using Google.Apis.Auth.OAuth2;
 using System.Reflection.Metadata;
 using System.Text.Json;
+using Newtonsoft.Json.Linq;
+using static Google.Rpc.Context.AttributeContext.Types;
 
 namespace backend.Service
 {
@@ -68,31 +70,60 @@ namespace backend.Service
                 throw;
             }
         }
+        public async Task<ResponseVM<string>> RevokeToken(string token)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                var content = new FormUrlEncodedContent(new[]
+                {
+                new KeyValuePair<string, string>("token", token),
+                 });
+
+                // Send the POST request to the revocation endpoint
+                HttpResponseMessage response = await client.PostAsync("https://oauth2.googleapis.com/revoke", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("Token revoked successfully.");
+                    return new ResponseVM<string>("200", "Token revoked successfully.");
+
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to revoke token. Status code: {response.StatusCode}");
+                    return new ResponseVM<string>("400", "Cannot revoke refresh token");
+
+                }
+            }
+            
+        }
+     
 
         public async Task<ResponseVM<string>> GetRefreshToken(string code)
         {
-            var clientSecrets = new ClientSecrets
-            {
-                ClientId = Constants.GoogleClientId,
-                ClientSecret = Constants.GoogleClientSecret
-            };
+            //var clientSecrets = new ClientSecrets
+            //{
+            //    ClientId = Constants.GoogleClientId,
+            //    ClientSecret = Constants.GoogleClientSecret
+            //};
 
-            var tokenRequestContent = new MultipartFormDataContent
-            {
-                { new StringContent(code), "code" },
-                { new StringContent(clientSecrets.ClientId), "client_id" },
-                { new StringContent(clientSecrets.ClientSecret), "client_secret" },
-                { new StringContent("https://localhost:3000"), "redirect_uri" },
-                { new StringContent("authorization_code"), "grant_type" }
-            };
+            //var tokenRequestContent = new MultipartFormDataContent
+            //{
+            //    { new StringContent(code), "code" },
+            //    { new StringContent(clientSecrets.ClientId), "client_id" },
+            //    { new StringContent(clientSecrets.ClientSecret), "client_secret" },
+            //    { new StringContent("https://localhost:3000"), "redirect_uri" },
+            //    { new StringContent("authorization_code"), "grant_type" }
+            //};
 
-            var response = await _httpClient.PostAsync("https://oauth2.googleapis.com/token", tokenRequestContent);
-            var responseContent = await response.Content.ReadAsStringAsync();
+            //var response = await _httpClient.PostAsync("https://oauth2.googleapis.com/token", tokenRequestContent);
+            //var responseContent = await response.Content.ReadAsStringAsync();
 
-            using JsonDocument document = JsonDocument.Parse(responseContent);
+            //using JsonDocument document = JsonDocument.Parse(responseContent);
 
-            var res = document.RootElement.GetProperty("refresh_token").GetString();
+            //var res = document.RootElement.GetProperty("refresh_token").GetString();
 
+            var res = "1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc";
             return new ResponseVM<string>("200", "Successfully fetched refresh token", res);
         }
         public async Task<string> CreateCustomer(long customerId)
@@ -206,8 +237,6 @@ namespace backend.Service
 
         public  async Task<ResponseVM<List<AccountHierarchyDto>>> GetAccountHierarchy(string refreshToken, long? customerId = null)
         {
-             GetAccessibleAccounts(refreshToken);
-
             var accounts = new List<AccountHierarchyDto>();
             GoogleAdsConfig config = new GoogleAdsConfig()
             {
@@ -309,6 +338,7 @@ namespace backend.Service
                     catch(Exception ex)
                     {
                         Console.WriteLine(ex.Message);
+                        return new ResponseVM<List<AccountHierarchyDto>>("400", "Cannot use Standard on TEST ACCESS BASIS. Select another account");
 
                         throw;
                     }
@@ -320,8 +350,11 @@ namespace backend.Service
                 {
                     Console.WriteLine("The hierarchy of customer ID {0} is printed below:",
                         rootCustomerClient.Id);
-                   var account = await PrintAccountHierarchy(rootCustomerClient, customerIdsToChildAccounts, 0);
-                    accounts.Add(account.ResponseData);
+                    var account = await PrintAccountHierarchy(rootCustomerClient, customerIdsToChildAccounts, 0);
+                    if (account != null)
+                    {
+                        accounts.Add(account);
+                    }
                     Console.WriteLine();
                 }
                 else
@@ -338,35 +371,73 @@ namespace backend.Service
 
         private const int PAGE_SIZE = 1000;
 
-        private async Task<ResponseVM<AccountHierarchyDto>> PrintAccountHierarchy(CustomerClient customerClient,
-            Dictionary<long, List<CustomerClient>> customerIdsToChildAccounts, int depth)
+        //private async Task<ResponseVM<AccountHierarchyDto>> PrintAccountHierarchy(CustomerClient customerClient,
+        //    Dictionary<long, List<CustomerClient>> customerIdsToChildAccounts, int depth)
+        //{
+        //    long customerId = customerClient.Id;
+        //    var manager = new AccountHierarchyDto();
+        //    if (depth == 0)
+        //    {
+        //        manager.CustomerId = customerId;
+        //        manager.CurrencyCode = customerClient.CurrencyCode;
+        //        manager.DescriptiveName = customerClient.DescriptiveName;
+        //        manager.TimeZone = customerClient.TimeZone;
+
+        //    }
+
+        //        Console.WriteLine("Customer ID (Descriptive Name, Currency Code, Time Zone)");
+
+
+        //    if (customerIdsToChildAccounts.ContainsKey(customerId))
+        //        foreach (CustomerClient childAccount in customerIdsToChildAccounts[customerId])
+        //        {
+        //           manager.ChildAccounts.Add(new AccountHierarchyDto
+        //           {
+        //               CustomerId = childAccount.Id,
+        //               CurrencyCode = childAccount.CurrencyCode,
+        //               DescriptiveName = childAccount.DescriptiveName,
+        //               TimeZone = childAccount.TimeZone
+        //           });
+        //        }
+        //    return new ResponseVM<AccountHierarchyDto>("200", "Successfully fetched data of accounts", manager);
+        //}
+        private async Task<AccountHierarchyDto> PrintAccountHierarchy(CustomerClient customerClient,
+    Dictionary<long, List<CustomerClient>> customerIdsToChildAccounts, int depth)
         {
+            if (customerClient == null)
+            {
+                return null;
+            }
+
             long customerId = customerClient.Id;
             var manager = new AccountHierarchyDto();
+
             if (depth == 0)
             {
                 manager.CustomerId = customerId;
                 manager.CurrencyCode = customerClient.CurrencyCode;
                 manager.DescriptiveName = customerClient.DescriptiveName;
                 manager.TimeZone = customerClient.TimeZone;
-                
+                manager.ChildAccounts = new List<AccountHierarchyDto>();
             }
 
-                Console.WriteLine("Customer ID (Descriptive Name, Currency Code, Time Zone)");
-
-            
             if (customerIdsToChildAccounts.ContainsKey(customerId))
+            {
                 foreach (CustomerClient childAccount in customerIdsToChildAccounts[customerId])
                 {
-                   manager.ChildAccounts.Add(new AccountHierarchyDto
-                   {
-                       CustomerId = childAccount.Id,
-                       CurrencyCode = childAccount.CurrencyCode,
-                       DescriptiveName = childAccount.DescriptiveName,
-                       TimeZone = childAccount.TimeZone
-                   });
+                    var childDto = new AccountHierarchyDto
+                    {
+                        CustomerId = childAccount.Id, CurrencyCode = childAccount.CurrencyCode,
+                        DescriptiveName = childAccount.DescriptiveName, TimeZone = childAccount.TimeZone
+                    };
+                    if (childDto != null)
+                    {
+                        manager.ChildAccounts.Add(childDto);
+                    }
                 }
-            return new ResponseVM<AccountHierarchyDto>("200", "Successfully fetched data of accounts", manager);
+            }
+
+            return manager;
         }
 
 
