@@ -20,6 +20,7 @@ using System.Reflection.Metadata;
 using System.Text.Json;
 using Newtonsoft.Json.Linq;
 using static Google.Rpc.Context.AttributeContext.Types;
+using backend.Helpers;
 
 namespace backend.Service
 {
@@ -440,67 +441,165 @@ namespace backend.Service
             return manager;
         }
 
+        #region OLD CODE WITHOUT AWAIT 
+        //public async Task<ResponseVM<string>> CreateCampaigns(GoogleCampaignDto campaignDto)
+        //{
+        //    GoogleAdsConfig config = new GoogleAdsConfig()
+        //    {
+        //        DeveloperToken = Constants.GoogleDeveloperToken,
+        //        OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
+        //        OAuth2ClientId = Constants.GoogleClientId,
+        //        OAuth2ClientSecret = Constants.GoogleClientSecret,
+        //        OAuth2RefreshToken = campaignDto.RefreshToken,                //"1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
+        //        LoginCustomerId =campaignDto.CustomerId.ToString()           //Constants.GoogleCustomerId.ToString()
+        //    };
 
+        //    GoogleAdsClient client = new GoogleAdsClient(config);
+        //    CampaignServiceClient campaignService = client.GetService(Services.V16.CampaignService);
+
+        //    // Create a budget to be used for the campaign.
+        //    string budget = CreateBudget(client, campaignDto);
+
+        //    List<CampaignOperation> operations = new List<CampaignOperation>();
+
+        //    Campaign campaign = new Campaign()
+        //    {
+        //        Name = campaignDto.CampaignName,
+        //        AdvertisingChannelType = GoogleMapper.MapToEnum(campaignDto.AdvertisingChannelType),
+
+        //        // Recommendation: Set the campaign to PAUSED when creating it to prevent
+        //        // the ads from immediately serving. Set to ENABLED once you've added
+        //        // targeting and the ads are ready to serve
+        //        Status = GoogleMapper.CampaignStatusMapper(campaignDto.Status),
+
+        //        // Set the bidding strategy and budget.
+        //        ManualCpc = new ManualCpc(),
+        //        CampaignBudget = budget,
+
+        //        // Set the campaign network options.
+        //        NetworkSettings = new NetworkSettings
+        //        {
+        //            TargetGoogleSearch = true,
+        //            TargetSearchNetwork = true,
+        //            // Enable Display Expansion on Search campaigns. See
+        //            // https://support.google.com/google-ads/answer/7193800 to learn more.
+        //            TargetContentNetwork = true,
+        //            TargetPartnerSearchNetwork = false
+        //        },
+
+        //        // Optional: Set the start date.
+        //        StartDate = campaignDto.StartDate,
+
+        //        // Optional: Set the end date.
+        //        EndDate = campaignDto.EndDate,
+        //    };
+
+        //    // Create the operation.
+        //    operations.Add(new CampaignOperation() { Create = campaign });
+
+        //    try
+        //    {
+        //        // Add the campaigns.
+        //        MutateCampaignsResponse retVal = campaignService.MutateCampaigns(
+        //            campaignDto.CustomerId.ToString(), operations);
+
+        //        // Display the results.
+        //        if (retVal.Results.Count > 0)
+        //        {
+        //            foreach (MutateCampaignResult newCampaign in retVal.Results)
+        //            {
+        //                Console.WriteLine("Campaign with resource ID = '{0}' was added.",
+        //                    newCampaign.ResourceName);
+        //            }
+        //            return new ResponseVM<string>("200", "Successfully created campaign");
+        //        }
+        //        else
+        //        {
+        //            Console.WriteLine("No campaigns were added.");
+        //            return new ResponseVM<string>("400", "Failed to create campaign");
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Console.WriteLine("Failure:");
+        //        Console.WriteLine($"Message: {e.Message}");
+
+
+        //        throw new Exception($"Google Ads API request failed: {e.Message}", e);
+        //    }
+
+        //}
+        //private static string CreateBudget(GoogleAdsClient client, GoogleCampaignDto dto)
+        //{
+        //    // Get the BudgetService.
+        //    CampaignBudgetServiceClient budgetService = client.GetService(
+        //        Services.V16.CampaignBudgetService);
+
+        //    // Create the campaign budget.
+        //    CampaignBudget budget = new CampaignBudget()
+        //    {
+        //        Name = dto.BudgetName,
+        //        DeliveryMethod = GoogleMapper.BudgetDeliveryMethodMapper(dto.BudgetDeliveryMethod),
+        //        AmountMicros = (long)(double.Parse(dto.BudgetAmount) * 1_000_000),
+        //    };
+
+        //    // Create the operation.
+        //    CampaignBudgetOperation budgetOperation = new CampaignBudgetOperation()
+        //    {
+        //        Create = budget
+        //    };
+
+        //    // Create the campaign budget.
+        //    MutateCampaignBudgetsResponse response = budgetService.MutateCampaignBudgets(
+        //        dto.CustomerId.ToString(), new CampaignBudgetOperation[] { budgetOperation });
+        //    return response.Results[0].ResourceName;
+        //}
+        #endregion
         public async Task<ResponseVM<string>> CreateCampaigns(GoogleCampaignDto campaignDto)
         {
-            GoogleAdsConfig config = new GoogleAdsConfig()
-            {
-                DeveloperToken = Constants.GoogleDeveloperToken,
-                OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
-                OAuth2ClientId = Constants.GoogleClientId,
-                OAuth2ClientSecret = Constants.GoogleClientSecret,
-                OAuth2RefreshToken = campaignDto.RefreshToken,                //"1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
-                LoginCustomerId =campaignDto.CustomerId.ToString()           //Constants.GoogleCustomerId.ToString()
-            };
-
-            GoogleAdsClient client = new GoogleAdsClient(config);
-            CampaignServiceClient campaignService = client.GetService(Services.V16.CampaignService);
-
-            // Create a budget to be used for the campaign.
-            string budget = CreateBudget(client, campaignDto.CustomerId);
-
-            List<CampaignOperation> operations = new List<CampaignOperation>();
-
-            Campaign campaign = new Campaign()
-            {
-                Name = "Interplanetary Cruise #" + ExampleUtilities.GetRandomString(),
-                AdvertisingChannelType = AdvertisingChannelType.Search,
-
-                // Recommendation: Set the campaign to PAUSED when creating it to prevent
-                // the ads from immediately serving. Set to ENABLED once you've added
-                // targeting and the ads are ready to serve
-                Status = CampaignStatus.Paused,
-
-                // Set the bidding strategy and budget.
-                ManualCpc = new ManualCpc(),
-                CampaignBudget = budget,
-
-                // Set the campaign network options.
-                NetworkSettings = new NetworkSettings
-                {
-                    TargetGoogleSearch = true,
-                    TargetSearchNetwork = true,
-                    // Enable Display Expansion on Search campaigns. See
-                    // https://support.google.com/google-ads/answer/7193800 to learn more.
-                    TargetContentNetwork = true,
-                    TargetPartnerSearchNetwork = false
-                },
-
-                // Optional: Set the start date.
-                StartDate = DateTime.Now.AddDays(1).ToString("yyyyMMdd"),
-
-                // Optional: Set the end date.
-                EndDate = DateTime.Now.AddYears(1).ToString("yyyyMMdd"),
-            };
-
-            // Create the operation.
-            operations.Add(new CampaignOperation() { Create = campaign });
-
             try
             {
+                GoogleAdsConfig config = new GoogleAdsConfig()
+                {
+                    DeveloperToken = Constants.GoogleDeveloperToken,
+                    OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
+                    OAuth2ClientId = Constants.GoogleClientId,
+                    OAuth2ClientSecret = Constants.GoogleClientSecret,
+                    OAuth2RefreshToken = campaignDto.RefreshToken,
+                    LoginCustomerId = campaignDto.CustomerId.ToString()
+                };
+
+                GoogleAdsClient client = new GoogleAdsClient(config);
+                CampaignServiceClient campaignService = client.GetService(Services.V16.CampaignService);
+
+                // Create a budget to be used for the campaign.
+                string budget = await CreateBudget(client, campaignDto);
+
+                List<CampaignOperation> operations = new List<CampaignOperation>();
+
+                Campaign campaign = new Campaign()
+                {
+                    Name = campaignDto.CampaignName,
+                    AdvertisingChannelType = GoogleMapper.MapToEnum(campaignDto.AdvertisingChannelType),
+                    Status = GoogleMapper.CampaignStatusMapper(campaignDto.Status),
+                    ManualCpc = new ManualCpc(),
+                    CampaignBudget = budget,
+                    NetworkSettings = new NetworkSettings
+                    {
+                        TargetGoogleSearch = true,
+                        TargetSearchNetwork = true,
+                        TargetContentNetwork = true,
+                        TargetPartnerSearchNetwork = false
+                    },
+                    StartDate = campaignDto.StartDate,
+                    EndDate = campaignDto.EndDate,
+                };
+
+                operations.Add(new CampaignOperation() { Create = campaign });
+
                 // Add the campaigns.
-                MutateCampaignsResponse retVal = campaignService.MutateCampaigns(
-                    customerId.ToString(), operations);
+                MutateCampaignsResponse retVal = await campaignService.MutateCampaignsAsync(
+                    campaignDto.CustomerId.ToString(), operations);
 
                 // Display the results.
                 if (retVal.Results.Count > 0)
@@ -518,42 +617,36 @@ namespace backend.Service
                     return new ResponseVM<string>("400", "Failed to create campaign");
                 }
             }
-            catch (GoogleAdsException e)
+            catch (Exception e)
             {
-                return new ResponseVM<string>("400", e.Message);
-
                 Console.WriteLine("Failure:");
                 Console.WriteLine($"Message: {e.Message}");
-                Console.WriteLine($"Failure: {e.Failure}");
-                Console.WriteLine($"Request ID: {e.RequestId}");
-                throw;
+                throw new Exception($"Google Ads API request failed: {e.Message}", e);
             }
-
         }
-        private static string CreateBudget(GoogleAdsClient client, long customerId)
+
+        private static async Task<string> CreateBudget(GoogleAdsClient client, GoogleCampaignDto dto)
         {
-            // Get the BudgetService.
             CampaignBudgetServiceClient budgetService = client.GetService(
                 Services.V16.CampaignBudgetService);
 
-            // Create the campaign budget.
             CampaignBudget budget = new CampaignBudget()
             {
-                Name = "Interplanetary Cruise Budget #" + ExampleUtilities.GetRandomString(),
-                DeliveryMethod = BudgetDeliveryMethod.Standard,
-                AmountMicros = 500000
+                Name = dto.BudgetName,
+                DeliveryMethod = GoogleMapper.BudgetDeliveryMethodMapper(dto.BudgetDeliveryMethod),
+                AmountMicros = (long)(double.Parse(dto.BudgetAmount) * 1_000_000),
             };
 
-            // Create the operation.
             CampaignBudgetOperation budgetOperation = new CampaignBudgetOperation()
             {
                 Create = budget
             };
 
-            // Create the campaign budget.
-            MutateCampaignBudgetsResponse response = budgetService.MutateCampaignBudgets(
-                customerId.ToString(), new CampaignBudgetOperation[] { budgetOperation });
+            MutateCampaignBudgetsResponse response = await budgetService.MutateCampaignBudgetsAsync(
+                dto.CustomerId.ToString(), new CampaignBudgetOperation[] { budgetOperation });
+
             return response.Results[0].ResourceName;
         }
+
     }
 }
