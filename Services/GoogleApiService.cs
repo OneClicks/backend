@@ -1,5 +1,4 @@
 ﻿using backend.Configurations;
-using backend.DTOs;
 using backend.Service.Interfaces;
 using backend.ViewModels;
 using Google.Ads.GoogleAds.Config;
@@ -21,6 +20,9 @@ using System.Text.Json;
 using Newtonsoft.Json.Linq;
 using static Google.Rpc.Context.AttributeContext.Types;
 using backend.Helpers;
+using Google.Ads.GoogleAds.V16.Enums;
+using backend.DTOs.GoogleDtos;
+using backend.DTOs;
 
 namespace backend.Service
 {
@@ -32,6 +34,7 @@ namespace backend.Service
         {
             _httpClient = httpClient;
         }
+        #region ACCOUNTS 
         public async Task<ResponseVM<object>> GetAccessibleAccounts(string refreshToken)
         {
             GoogleAdsConfig config = new GoogleAdsConfig()
@@ -127,116 +130,8 @@ namespace backend.Service
             var res = "1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc";
             return new ResponseVM<string>("200", "Successfully fetched refresh token", res);
         }
-        public async Task<string> CreateCustomer(long customerId)
-        {
-            GoogleAdsConfig config = new GoogleAdsConfig()
-            {
-                DeveloperToken = Constants.GoogleDeveloperToken,
-                OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
-                OAuth2ClientId = Constants.GoogleClientId,
-                OAuth2ClientSecret = Constants.GoogleClientSecret,
-                OAuth2RefreshToken = "1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
-                LoginCustomerId = Constants.GoogleCustomerId.ToString()
-            };
 
-            GoogleAdsClient client = new GoogleAdsClient(config);
-
-            // Get the GoogleAdsService.
-
-            var googleAdsService = client.GetService(Services.V16.CustomerService);
-
-            // Create a query that will retrieve all campaigns.
-
-            Customer customer = new Customer()
-            {
-                DescriptiveName = $"Account created with CustomerService on '{DateTime.Now}'",
-
-                // For a list of valid currency codes and time zones see this documentation:
-                // https://developers.google.com/google-ads/api/reference/data/codes-formats#codes_formats.
-                CurrencyCode = "USD",
-                TimeZone = "America/New_York",
-
-                // The below values are optional. For more information about URL
-                // options see: https://support.google.com/google-ads/answer/6305348.
-                TrackingUrlTemplate = "{lpurl}?device={device}",
-                FinalUrlSuffix = "keyword={keyword}&matchtype={matchtype}&adgroupid={adgroupid}"
-            };
-
-            try
-            {
-                // Create the account.
-                CreateCustomerClientResponse response = googleAdsService.CreateCustomerClient(
-                     Constants.GoogleCustomerId.ToString(), customer);
-
-                // Display the result.
-                Console.WriteLine($"Created a customer with resource name " +
-                    $"'{response.ResourceName}' under the manager account with customer " +
-                    $"ID '{Constants.GoogleCustomerId.ToString()}'");
-            }
-            catch (GoogleAdsException e)
-            {
-                Console.WriteLine("Failure:");
-                Console.WriteLine($"Message: {e.Message}");
-                Console.WriteLine($"Failure: {e.Failure}");
-                Console.WriteLine($"Request ID: {e.RequestId}");
-                throw;
-            }
-            return "";
-        }
-        public async Task<string> GetAllCampaigns(long customerId)
-        {
-            GoogleAdsConfig config = new GoogleAdsConfig()
-            {
-                DeveloperToken = Constants.GoogleDeveloperToken,
-                OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
-                OAuth2ClientId = Constants.GoogleClientId,
-                OAuth2ClientSecret = Constants.GoogleClientSecret,
-                OAuth2RefreshToken = "1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
-                LoginCustomerId = Constants.GoogleCustomerId.ToString()
-            };
-
-            GoogleAdsClient client = new GoogleAdsClient(config);
-
-            // Get the GoogleAdsService.
-
-            var googleAdsService = client.GetService(Services.V16.GoogleAdsService);
-
-            // Create a query that will retrieve all campaigns.
-
-            string query = @"SELECT
-                            campaign.id,
-                            campaign.name,
-                            campaign.network_settings.target_content_network
-                        FROM campaign
-                        ORDER BY campaign.id";
-
-            try
-            {
-                googleAdsService.SearchStream(customerId.ToString(), query,
-                    delegate (SearchGoogleAdsStreamResponse resp)
-                    {
-                        foreach (GoogleAdsRow googleAdsRow in resp.Results)
-                        {
-                            Console.WriteLine("Campaign with ID {0} and name '{1}' was found.",
-                                googleAdsRow.Campaign.Id, googleAdsRow.Campaign.Name);
-                        }
-                    }
-                );
-            }
-            catch (GoogleAdsException e)
-            {
-                Console.WriteLine("Failure:");
-                Console.WriteLine($"Message: {e.Message}");
-                Console.WriteLine($"Failure: {e.Failure}");
-                Console.WriteLine($"Request ID: {e.RequestId}");
-                throw;
-            }
-            return "";
-        }
-
-
-
-        public  async Task<ResponseVM<List<AccountHierarchyDto>>> GetAccountHierarchy(string refreshToken, long? customerId = null)
+        public async Task<ResponseVM<List<AccountHierarchyDto>>> GetAccountHierarchy(string refreshToken, long? customerId = null)
         {
             var accounts = new List<AccountHierarchyDto>();
             GoogleAdsConfig config = new GoogleAdsConfig()
@@ -336,7 +231,7 @@ namespace backend.Service
                                     unprocessedCustomerIds.Enqueue(customerClient.Id);
                         }
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Console.WriteLine(ex.Message);
                         return new ResponseVM<List<AccountHierarchyDto>>("400", "Cannot use Standard on TEST ACCESS BASIS. Select another account");
@@ -344,7 +239,7 @@ namespace backend.Service
                         throw;
                     }
 
-                   
+
                 }
 
                 if (rootCustomerClient != null)
@@ -372,37 +267,7 @@ namespace backend.Service
 
         private const int PAGE_SIZE = 1000;
 
-        //private async Task<ResponseVM<AccountHierarchyDto>> PrintAccountHierarchy(CustomerClient customerClient,
-        //    Dictionary<long, List<CustomerClient>> customerIdsToChildAccounts, int depth)
-        //{
-        //    long customerId = customerClient.Id;
-        //    var manager = new AccountHierarchyDto();
-        //    if (depth == 0)
-        //    {
-        //        manager.CustomerId = customerId;
-        //        manager.CurrencyCode = customerClient.CurrencyCode;
-        //        manager.DescriptiveName = customerClient.DescriptiveName;
-        //        manager.TimeZone = customerClient.TimeZone;
-
-        //    }
-
-        //        Console.WriteLine("Customer ID (Descriptive Name, Currency Code, Time Zone)");
-
-
-        //    if (customerIdsToChildAccounts.ContainsKey(customerId))
-        //        foreach (CustomerClient childAccount in customerIdsToChildAccounts[customerId])
-        //        {
-        //           manager.ChildAccounts.Add(new AccountHierarchyDto
-        //           {
-        //               CustomerId = childAccount.Id,
-        //               CurrencyCode = childAccount.CurrencyCode,
-        //               DescriptiveName = childAccount.DescriptiveName,
-        //               TimeZone = childAccount.TimeZone
-        //           });
-        //        }
-        //    return new ResponseVM<AccountHierarchyDto>("200", "Successfully fetched data of accounts", manager);
-        //}
-        private async Task<AccountHierarchyDto> PrintAccountHierarchy(CustomerClient customerClient,Dictionary<long, List<CustomerClient>> customerIdsToChildAccounts, int depth)
+        private async Task<AccountHierarchyDto> PrintAccountHierarchy(CustomerClient customerClient, Dictionary<long, List<CustomerClient>> customerIdsToChildAccounts, int depth)
         {
             if (customerClient == null)
             {
@@ -427,8 +292,10 @@ namespace backend.Service
                 {
                     var childDto = new AccountHierarchyDto
                     {
-                        CustomerId = childAccount.Id, CurrencyCode = childAccount.CurrencyCode,
-                        DescriptiveName = childAccount.DescriptiveName, TimeZone = childAccount.TimeZone
+                        CustomerId = childAccount.Id,
+                        CurrencyCode = childAccount.CurrencyCode,
+                        DescriptiveName = childAccount.DescriptiveName,
+                        TimeZone = childAccount.TimeZone
                     };
                     if (childDto != null)
                     {
@@ -439,6 +306,132 @@ namespace backend.Service
 
             return manager;
         }
+
+        public async Task<string> CreateCustomer(long customerId)
+        {
+            GoogleAdsConfig config = new GoogleAdsConfig()
+            {
+                DeveloperToken = Constants.GoogleDeveloperToken,
+                OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
+                OAuth2ClientId = Constants.GoogleClientId,
+                OAuth2ClientSecret = Constants.GoogleClientSecret,
+                OAuth2RefreshToken = "1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
+                LoginCustomerId = Constants.GoogleCustomerId.ToString()
+            };
+
+            GoogleAdsClient client = new GoogleAdsClient(config);
+
+            // Get the GoogleAdsService.
+
+            var googleAdsService = client.GetService(Services.V16.CustomerService);
+
+            // Create a query that will retrieve all campaigns.
+
+            Customer customer = new Customer()
+            {
+                DescriptiveName = $"Account created with CustomerService on '{DateTime.Now}'",
+
+                // For a list of valid currency codes and time zones see this documentation:
+                // https://developers.google.com/google-ads/api/reference/data/codes-formats#codes_formats.
+                CurrencyCode = "USD",
+                TimeZone = "America/New_York",
+
+                // The below values are optional. For more information about URL
+                // options see: https://support.google.com/google-ads/answer/6305348.
+                TrackingUrlTemplate = "{lpurl}?device={device}",
+                FinalUrlSuffix = "keyword={keyword}&matchtype={matchtype}&adgroupid={adgroupid}"
+            };
+
+            try
+            {
+                // Create the account.
+                CreateCustomerClientResponse response = googleAdsService.CreateCustomerClient(
+                     Constants.GoogleCustomerId.ToString(), customer);
+
+                // Display the result.
+                Console.WriteLine($"Created a customer with resource name " +
+                    $"'{response.ResourceName}' under the manager account with customer " +
+                    $"ID '{Constants.GoogleCustomerId.ToString()}'");
+            }
+            catch (GoogleAdsException e)
+            {
+                Console.WriteLine("Failure:");
+                Console.WriteLine($"Message: {e.Message}");
+                Console.WriteLine($"Failure: {e.Failure}");
+                Console.WriteLine($"Request ID: {e.RequestId}");
+                throw;
+            }
+            return "";
+        }
+#endregion
+
+        #region CAMPAIGNS
+        public async Task<List<object>> GetAllCampaigns(long customerId)
+        {
+            GoogleAdsConfig config = new GoogleAdsConfig()
+            {
+                DeveloperToken = Constants.GoogleDeveloperToken,
+                OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
+                OAuth2ClientId = Constants.GoogleClientId,
+                OAuth2ClientSecret = Constants.GoogleClientSecret,
+                OAuth2RefreshToken = "1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
+                LoginCustomerId = Constants.GoogleCustomerId.ToString()
+            };
+
+            GoogleAdsClient client = new GoogleAdsClient(config);
+
+            // Get the GoogleAdsService.
+
+            var googleAdsService = client.GetService(Services.V16.GoogleAdsService);
+
+            // Create a query that will retrieve all campaigns.
+
+            string query = @"SELECT
+                                campaign.id,
+                                campaign.name,
+                                campaign.status,
+                                campaign.manual_cpc.enhanced_cpc_enabled,
+                                campaign.start_date,
+                                campaign.end_date
+                                FROM campaign
+                                ORDER BY campaign.id";
+
+            try
+            {
+                List<object> campaignDetails = new List<object>();
+                googleAdsService.SearchStream(customerId.ToString(), query,
+                    delegate (SearchGoogleAdsStreamResponse resp)
+                    {
+                        foreach (GoogleAdsRow googleAdsRow in resp.Results)
+                        {
+                            var details = new
+                            {
+                                Id = googleAdsRow.Campaign.Id,
+                                Name = googleAdsRow.Campaign.Name,
+                                ManualCpc = googleAdsRow.Campaign.ManualCpc.EnhancedCpcEnabled ? "Enhanced Cpc Enabled" : "",
+                                Status = GoogleMapper.CampaignStatusToString(googleAdsRow.Campaign.Status),
+                                StartDate = googleAdsRow.Campaign.StartDate,
+                                EndDate = googleAdsRow.Campaign.EndDate
+                            };
+
+                            campaignDetails.Add(details);
+                        }
+                    }
+                );
+                return campaignDetails;
+            }
+            catch (GoogleAdsException e)
+            {
+                Console.WriteLine("Failure:");
+                Console.WriteLine($"Message: {e.Message}");
+                Console.WriteLine($"Failure: {e.Failure}");
+                Console.WriteLine($"Request ID: {e.RequestId}");
+                throw;
+            }
+
+        }
+
+
 
         #region OLD CODE WITHOUT AWAIT 
         //public async Task<ResponseVM<string>> CreateCampaigns(GoogleCampaignDto campaignDto)
@@ -568,7 +561,7 @@ namespace backend.Service
                     LoginCustomerId = campaignDto.CustomerId.ToString()
                 };
 
-                GoogleAdsClient client = new GoogleAdsClient(config);
+                GoogleAdsClient client = new GoogleAdsClient();
                 CampaignServiceClient campaignService = client.GetService(Services.V16.CampaignService);
 
                 // Create a budget to be used for the campaign.
@@ -646,6 +639,64 @@ namespace backend.Service
 
             return response.Results[0].ResourceName;
         }
+        #endregion
+
+        #region ADS GROUPS
+        public async Task<ResponseVM<string>> CreateAdGroup(AdGroupDto adGroupObj)
+        {
+                GoogleAdsConfig config = new GoogleAdsConfig()
+                {
+                    DeveloperToken = Constants.GoogleDeveloperToken,
+                    OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
+                    OAuth2ClientId = Constants.GoogleClientId,
+                    OAuth2ClientSecret = Constants.GoogleClientSecret,
+                    OAuth2RefreshToken = adGroupObj.RefreshToken,
+                    LoginCustomerId = adGroupObj.ManagerId.ToString()
+                };
+            GoogleAdsClient client = new GoogleAdsClient(config);
+
+            AdGroupServiceClient adGroupService = client.GetService(Services.V16.AdGroupService);
+
+            List<AdGroupOperation> operations = new List<AdGroupOperation>();
+            AdGroup adGroup = new AdGroup()
+            {
+                Name = adGroupObj.AdGroupName,
+                Status = GoogleMapper.AdGroupStatusMapper(adGroupObj.AdGroupStatus),
+                Campaign = ResourceNames.Campaign(adGroupObj.CustomerId, adGroupObj.CampaignId),
+                CpcBidMicros = (long)(double.Parse(adGroupObj.AdGroupBidAmount) * 1_000_000),
+                
+            };
+            AdGroupOperation operation = new AdGroupOperation()
+            {
+                Create = adGroup
+            };
+            operations.Add(operation);
+            try
+            {
+                // Create the ad groups.
+                MutateAdGroupsResponse response = adGroupService.MutateAdGroups(
+                    adGroupObj.CustomerId.ToString(), operations);
+
+                // Display the results.
+                foreach (MutateAdGroupResult newAdGroup in response.Results)
+                {
+                    Console.WriteLine("Ad group with resource name '{0}' was created.",
+                        newAdGroup.ResourceName);
+                }
+
+                return new ResponseVM<string>("200", "Successfully created Ad group ");
+
+            }
+            catch (GoogleAdsException e)
+            {
+                Console.WriteLine("Failure:");
+                Console.WriteLine($"Message: {e.Message}");
+                Console.WriteLine($"Failure: {e.Failure}");
+                Console.WriteLine($"Request ID: {e.RequestId}");
+                throw;
+            }
+        }
+        #endregion
 
     }
 }

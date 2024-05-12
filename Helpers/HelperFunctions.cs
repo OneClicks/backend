@@ -1,5 +1,7 @@
-﻿using System.Security.Cryptography;
+﻿using Google.Ads.GoogleAds.V16.Resources;
+using System.Security.Cryptography;
 using System.Text;
+using static Google.Ads.GoogleAds.V16.Enums.AdGroupStatusEnum.Types;
 using static Google.Ads.GoogleAds.V16.Enums.AdvertisingChannelTypeEnum.Types;
 using static Google.Ads.GoogleAds.V16.Enums.BudgetDeliveryMethodEnum.Types;
 using static Google.Ads.GoogleAds.V16.Enums.CampaignStatusEnum.Types;
@@ -77,6 +79,32 @@ namespace backend.Helpers
                 _ => throw new ArgumentException($"Invalid campaign status: {status}")
             };
         }
+
+        public static string CampaignStatusToString(CampaignStatus status)
+        {
+            return status switch
+            {
+                CampaignStatus.Paused => "PAUSED",
+                CampaignStatus.Enabled => "ENABLED",
+                CampaignStatus.Removed => "REMOVED",
+                CampaignStatus.Unknown => "UNKNOWN",
+                CampaignStatus.Unspecified => "UNSPECIFIED",
+                _ => throw new ArgumentException($"Invalid campaign status: {status}")
+            };
+        }
+
+        public static AdGroupStatus AdGroupStatusMapper(string status)
+        {
+            return status.ToUpper() switch
+            {
+                "PAUSED" => AdGroupStatus.Paused,
+                "ENABLED" => AdGroupStatus.Enabled,
+                "REMOVED" => AdGroupStatus.Removed,
+                "UNKNOWN" => AdGroupStatus.Unknown,
+                "UNSPECIFIED" => AdGroupStatus.Unspecified,
+                _ => throw new ArgumentException($"Invalid AdGroupStatus : {status}")
+            };
+        }
         public static BudgetDeliveryMethod BudgetDeliveryMethodMapper(string deliveryMethod)
         {
             return deliveryMethod.ToUpper() switch
@@ -88,7 +116,19 @@ namespace backend.Helpers
                 _ => throw new ArgumentException($"Invalid budget delivery method: {deliveryMethod}")
             };
         }
+        public static string BudgetDeliveryMethodToString(BudgetDeliveryMethod deliveryMethod)
+        {
+            return deliveryMethod switch
+            {
+                BudgetDeliveryMethod.Accelerated => "ACCELERATED",
+                BudgetDeliveryMethod.Standard => "STANDARD",
+                BudgetDeliveryMethod.Unknown => "UNKNOWN",
+                BudgetDeliveryMethod.Unspecified => "UNSPECIFIED",
+                _ => throw new ArgumentException($"Invalid budget delivery method: {deliveryMethod}")
+            };
+        }
+
     }
-    
+
 
 }

@@ -1,4 +1,4 @@
-﻿using backend.DTOs;
+﻿using backend.DTOs.GoogleDtos;
 using backend.Entities;
 using backend.Service.Interfaces;
 using backend.ViewModels;
@@ -104,5 +104,41 @@ namespace backend.Controllers
                 return StatusCode(503, "An error occurred fetching all categories");
             }
         }
+
+        [HttpGet("GetAllCampaigns")]
+        public async Task<IActionResult> GetAllCampaigns([FromQuery] long customerId)
+        {
+            try
+            {
+                var data = await _googleApiService.GetAllCampaigns(customerId);
+                //_logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred fetching all categories");
+            }
+        }
+
+
+        [HttpPost("CreateAdGroup")]
+        public async Task<IActionResult> CreateAdGroup(AdGroupDto Dto)
+        {
+            try
+            {
+                var data = await _googleApiService.CreateAdGroup(Dto);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred fetching all categories");
+            }
+        }
+
     }
 }
