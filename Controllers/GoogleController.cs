@@ -1,4 +1,5 @@
-﻿using backend.Entities;
+﻿using backend.DTOs;
+using backend.Entities;
 using backend.Service.Interfaces;
 using backend.ViewModels;
 using Microsoft.AspNetCore.Http;
@@ -76,6 +77,25 @@ namespace backend.Controllers
                 string idPart = customerId.Split('/')[1]; // Split the string by '/' and take the second part
                 long id = long.Parse(idPart); // Parse the ID part as a long
                 var data = await _googleApiService.GetAccountHierarchy(refreshToken, id);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred fetching all categories");
+            }
+        }
+
+        [HttpPost("CreateCampaign")]
+        public async Task<IActionResult> CreateCampaign(GoogleCampaignDto campaignDto)
+        {
+            try
+            {
+                string idPart = customerId.Split('/')[1]; // Split the string by '/' and take the second part
+                long id = long.Parse(idPart); // Parse the ID part as a long
+                var data = await _googleApiService.CreateCampaigns(campaignDto);
                 _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
             }

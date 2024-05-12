@@ -10,7 +10,7 @@ namespace backend.Service.Interfaces
         Task<ResponseVM<string>> RevokeToken(string token);
         Task<string> GetAllCampaigns(long customerId);
         Task<ResponseVM<List<AccountHierarchyDto>>> GetAccountHierarchy(string refreshToken, long? customerId = null);
-        Task CreateCampaigns(long customerId);
+        Task<ResponseVM<string>> CreateCampaigns(GoogleCampaignDto campaignDto);
         Task<ResponseVM<object>> GetAccessibleAccounts(string v);
     }
 }
