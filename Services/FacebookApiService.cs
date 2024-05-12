@@ -132,7 +132,8 @@ namespace backend.Services
                         CampaignName = campaign.GetProperty("name").GetString(),
                         CampaignId = campaign.GetProperty("id").GetString(),
                         Objective = campaign.GetProperty("objective").GetString(),
-                        Status = campaign.GetProperty("status").GetString()
+                        Status = campaign.GetProperty("status").GetString(),
+                        Type = "Facebook"
                     });
                 }
 
@@ -436,7 +437,8 @@ namespace backend.Services
                         OptimizationGoal = adSet.GetProperty("optimization_goal").GetString(),
                         Status = adSet.GetProperty("status").GetString(),
                         StartTime = adSet.GetProperty("start_time").GetString(),
-                        AdsetName = adSet.GetProperty("name").GetString()
+                        AdsetName = adSet.GetProperty("name").GetString(),
+                        Type = "Facebook"
                     });
                 }
 
