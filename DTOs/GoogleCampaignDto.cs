@@ -7,7 +7,11 @@
         public string AdvertisingChannelType { get; set; }
         public bool TargetGoogleSearch { get; set; }
         public bool TargetSearchNetwork { get; set; }
-        public string Budget { get; set; }
+        public string BudgetAmount { get; set; }
+        public string BudgetName { get; set; }
+        public string BudgetDeliveryMethod { get; set; }
+
+
         public string StartDate { get; set; }
         public string EndDate { get; set; }
         public string Status { get; set; }
