@@ -441,7 +441,7 @@ namespace backend.Service
         }
 
 
-        public async Task CreateCampaigns(long customerId)
+        public async Task<ResponseVM<string>> CreateCampaigns(GoogleCampaignDto campaignDto)
         {
             GoogleAdsConfig config = new GoogleAdsConfig()
             {
@@ -449,15 +449,15 @@ namespace backend.Service
                 OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
                 OAuth2ClientId = Constants.GoogleClientId,
                 OAuth2ClientSecret = Constants.GoogleClientSecret,
-                OAuth2RefreshToken = "1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
-                LoginCustomerId = Constants.GoogleCustomerId.ToString()
+                OAuth2RefreshToken = campaignDto.RefreshToken,                //"1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
+                LoginCustomerId =campaignDto.CustomerId.ToString()           //Constants.GoogleCustomerId.ToString()
             };
 
             GoogleAdsClient client = new GoogleAdsClient(config);
             CampaignServiceClient campaignService = client.GetService(Services.V16.CampaignService);
 
             // Create a budget to be used for the campaign.
-            string budget = CreateBudget(client, customerId);
+            string budget = CreateBudget(client, campaignDto.CustomerId);
 
             List<CampaignOperation> operations = new List<CampaignOperation>();
 
@@ -510,14 +510,18 @@ namespace backend.Service
                         Console.WriteLine("Campaign with resource ID = '{0}' was added.",
                             newCampaign.ResourceName);
                     }
+                    return new ResponseVM<string>("200", "Successfully created campaign");
                 }
                 else
                 {
                     Console.WriteLine("No campaigns were added.");
+                    return new ResponseVM<string>("400", "Failed to create campaign");
                 }
             }
             catch (GoogleAdsException e)
             {
+                return new ResponseVM<string>("400", e.Message);
+
                 Console.WriteLine("Failure:");
                 Console.WriteLine($"Message: {e.Message}");
                 Console.WriteLine($"Failure: {e.Failure}");
