@@ -11,6 +11,7 @@
         public string Message { get; set; }
         public string AdAccountId { get; set; }
         public string AccessToken { get; set; }
+        public string Type { get; set; }
     }
     public class AdImageDto
     {

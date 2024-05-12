@@ -166,7 +166,8 @@ namespace backend.Services
                     AccessToken = campaign.AccessToken,
                     AdAccountId = campaign.AdAccountId,
                     SpecialAdCategories = campaign.SpecialAdCategories,
-                    Status = campaign.Status
+                    Status = campaign.Status,
+                    Type = campaign.Type
                 };
                 if (response.IsSuccessStatusCode)
                 {
@@ -390,7 +391,7 @@ namespace backend.Services
                     OptimizationGoal = adset.OptimizationGoal,
                     StartTime = adset.StartTime,
                     Status = adset.Status,
-                                       
+                    Type = adset.Type
                 };
 
                 if (response.IsSuccessStatusCode)
@@ -409,7 +410,7 @@ namespace backend.Services
         {
             using (var httpClient = new HttpClient())
             {
-                var url = $"https://graph.facebook.com/v18.0/act_{adAccountId}?fields=adsets{{account_id,campaign_id,daily_budget,targeting,optimization_goal,status,start_time,name}}&access_token={accessToken}";
+                var url = $"https://graph.facebook.com/v18.0/act_{adAccountId}?fields=adsets{{id, account_id,campaign_id, daily_budget,targeting,optimization_goal,status,start_time,name}}&access_token={accessToken}";
 
                 var response = await httpClient.GetAsync(url);
 
@@ -430,6 +431,7 @@ namespace backend.Services
                     {
                         AdAccountId = adSet.GetProperty("account_id").GetString(),
                         CampaignId = adSet.GetProperty("campaign_id").GetString(),
+                        AdsetId = adSet.GetProperty("id").GetString(),
                         DailyBudget = int.Parse(adSet.GetProperty("daily_budget").GetString()),
                         OptimizationGoal = adSet.GetProperty("optimization_goal").GetString(),
                         Status = adSet.GetProperty("status").GetString(),
@@ -515,6 +517,7 @@ namespace backend.Services
                     Message = creative.Message,
                     FileName = creative.FileName,
                     ImageHash = creative.ImageHash,
+                    Type = creative.Type,
                 };
                 var responseCreative = await _adcreativeRepository.Create(adcreativeObj);
                 

@@ -32,5 +32,8 @@ namespace backend.Entities
 
         [BsonElement("ImageFile")]
         public string ImageFile { get; set; }
+
+        [BsonElement("Type")]
+        public string Type { get; set; }
     }
 }
