@@ -1,4 +1,4 @@
-﻿namespace backend.DTOs
+﻿namespace backend.DTOs.GoogleDtos
 {
     public class AccountHierarchyDto
     {
