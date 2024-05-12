@@ -402,8 +402,7 @@ namespace backend.Service
         //        }
         //    return new ResponseVM<AccountHierarchyDto>("200", "Successfully fetched data of accounts", manager);
         //}
-        private async Task<AccountHierarchyDto> PrintAccountHierarchy(CustomerClient customerClient,
-    Dictionary<long, List<CustomerClient>> customerIdsToChildAccounts, int depth)
+        private async Task<AccountHierarchyDto> PrintAccountHierarchy(CustomerClient customerClient,Dictionary<long, List<CustomerClient>> customerIdsToChildAccounts, int depth)
         {
             if (customerClient == null)
             {
@@ -586,8 +585,8 @@ namespace backend.Service
                     CampaignBudget = budget,
                     NetworkSettings = new NetworkSettings
                     {
-                        TargetGoogleSearch = true,
-                        TargetSearchNetwork = true,
+                        TargetGoogleSearch = campaignDto.TargetGoogleSearch,
+                        TargetSearchNetwork = campaignDto.TargetGoogleSearch,
                         TargetContentNetwork = true,
                         TargetPartnerSearchNetwork = false
                     },

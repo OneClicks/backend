@@ -93,8 +93,6 @@ namespace backend.Controllers
         {
             try
             {
-                //string idPart = customerId.Split('/')[1]; // Split the string by '/' and take the second part
-                //long id = long.Parse(idPart); // Parse the ID part as a long
                 var data = await _googleApiService.CreateCampaigns(campaignDto);
                 _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
