@@ -692,9 +692,9 @@ namespace backend.Service
                 string[] parts = adGroupResourceName.Split('/');
                 long adGroupId = long.Parse(parts.Last());
 
-                string customizedAttribute = GetCustomizedAttribute(adGroupObj, adGroupId, adGroupResourceName);
+               // string customizedAttribute = GetCustomizedAttribute(adGroupObj, adGroupId, adGroupResourceName);
 
-              //  var searchAdobj = CreateResponsiveSearchAdWithCustomization(adGroupObj, adGroupResourceName);
+                var searchAdobj = CreateResponsiveSearchAdWithCustomization(adGroupObj, adGroupResourceName);
                 var keywordsObj = AddKeywords(adGroupObj, adGroupResourceName);
                 var geotargetingObj = AddGeoTargeting(adGroupObj);
 
@@ -895,23 +895,19 @@ namespace backend.Service
                         {
                             Headlines =
                             {
-                                new AdTextAsset() { Text = "Cruise to Mars" },
-                                new AdTextAsset() { Text = "Best Space Cruise Line" },
-                                new AdTextAsset() { Text = "Experience the Stars" }
+                                new AdTextAsset() { Text = adGroupObj.SearchAds.Headlines[0] },
+                                new AdTextAsset() { Text = adGroupObj.SearchAds.Headlines[1] },
+                                new AdTextAsset() { Text = adGroupObj.SearchAds.Headlines[2] }
                             },
 
                             Descriptions =
                             {
-                                new AdTextAsset() { Text = "Buy your tickets now" },
-                                new AdTextAsset()
-                                {
-                                    Text = $"Cruise to {{CUSTOMIZER.{adGroupObj.SearchAds.CustomizerAttributeName}:Venus}} for {{CUSTOMIZER.{adGroupObj.SearchAds.CustomizerAttributePrice
-                                    }:10.0€}}"
-                                }
+                                new AdTextAsset() { Text =  adGroupObj.SearchAds.Descriptions[0] },
+                                new AdTextAsset() { Text =  adGroupObj.SearchAds.Descriptions[1] }                                 
                             },
-
-                           // Path1 = "all-inclusive",
-                           // Path2 = "deals"
+                         
+                            Path1 = adGroupObj.SearchAds.Path1,
+                            Path2 = adGroupObj.SearchAds.Path2
                         },
 
                         FinalUrls = { adGroupObj.SearchAds.TargetUrl }
@@ -965,7 +961,7 @@ namespace backend.Service
                         Text = adGroupObj.Keywords.Keywords,
                         MatchType = GoogleMapper.KeywordMatchTypeMapper("Exact")
                     },
-                //    Negative = adGroupObj.Keywords.Negative,
+                    Negative = adGroupObj.Keywords.Negative,
                 }
             };
             operations.Add(exactMatchOperation);
@@ -981,7 +977,7 @@ namespace backend.Service
                         Text = adGroupObj.Keywords.Keywords,
                         MatchType = GoogleMapper.KeywordMatchTypeMapper("Phrase")
                     },
-                 //   Negative = adGroupObj.Keywords.Negative,
+                    Negative = adGroupObj.Keywords.Negative,
                 }
             };
             operations.Add(phraseMatchOperation);
@@ -997,7 +993,7 @@ namespace backend.Service
                         Text = adGroupObj.Keywords.Keywords,
                         MatchType = GoogleMapper.KeywordMatchTypeMapper("Broad")
                     },
-                     //   Negative = adGroupObj.Keywords.Negative
+                        Negative = adGroupObj.Keywords.Negative
                     
                 }
             };
