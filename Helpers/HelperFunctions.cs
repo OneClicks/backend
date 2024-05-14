@@ -144,6 +144,18 @@ namespace backend.Helpers
                 _ => throw new ArgumentException($"Invalid AdGroupAdStatus: {status}")
             };
         }
+        public static string AdGroupAdStatusMapperToString(AdGroupAdStatus status)
+        {
+            return status switch
+            {
+                AdGroupAdStatus.Paused => "PAUSED",
+                AdGroupAdStatus.Enabled => "ENABLED",
+                AdGroupAdStatus.Removed => "REMOVED",
+                AdGroupAdStatus.Unknown => "UNKNOWN",
+                AdGroupAdStatus.Unspecified => "UNSPECIFIED",
+                _ => throw new ArgumentException($"Invalid campaign status: {status}")
+            };
+        }
         public static AdGroupCriterionStatus AdGroupCriterionStatusMapper(string status)
         {
             return status.ToUpper() switch

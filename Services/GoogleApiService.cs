@@ -869,7 +869,7 @@ namespace backend.Service
 
         #endregion
 
-        #region CREATE RESPONSIVE SEARCH ADS
+        #region  RESPONSIVE SEARCH ADS
         public async Task<ResponseVM<string>> CreateResponsiveSearchAdWithCustomization(AdGroupDto adGroupObj, string adGroupResourceName)
         {
             GoogleAdsConfig config = new GoogleAdsConfig()
@@ -1080,7 +1080,74 @@ namespace backend.Service
 
         
         }
+
+
+
+        public async Task<List<object>> GetAllResponseAds(long customerId)
+        {
+            GoogleAdsConfig config = new GoogleAdsConfig()
+            {
+                DeveloperToken = Constants.GoogleDeveloperToken,
+                OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
+                OAuth2ClientId = Constants.GoogleClientId,
+                OAuth2ClientSecret = Constants.GoogleClientSecret,
+                OAuth2RefreshToken = "1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
+                LoginCustomerId = Constants.GoogleCustomerId.ToString()
+            };
+
+            GoogleAdsClient client = new GoogleAdsClient(config);
+
+            // Get the GoogleAdsService.
+
+            var googleAdsService = client.GetService(Services.V16.GoogleAdsService);
+
+            // Create a query that will retrieve all campaigns.
+
+            string query = @"SELECT
+                                ad_group.id,
+                                ad_group_ad.ad.id,
+                                ad_group_ad.ad.responsive_search_ad.headlines,
+                                ad_group_ad.ad.responsive_search_ad.descriptions,
+                                ad_group_ad.status
+                            FROM ad_group_ad
+                            WHERE ad_group_ad.ad.type = RESPONSIVE_SEARCH_AD";
+
+            try
+            {
+                List<object> AdDetails = new List<object>();
+                googleAdsService.SearchStream(customerId.ToString(), query,
+                    delegate (SearchGoogleAdsStreamResponse resp)
+                    {
+                        foreach (GoogleAdsRow googleAdsRow in resp.Results)
+                        {
+                            var details = new
+                            {
+                                AdId = googleAdsRow.AdGroupAd.Ad.Id,
+                                AdName = googleAdsRow.AdGroupAd.Ad.Name,
+                                headlines = googleAdsRow.AdGroupAd.Ad.ResponsiveSearchAd.Headlines,
+                                descriptions = googleAdsRow.AdGroupAd.Ad.ResponsiveSearchAd.Descriptions,
+                                status = GoogleMapper.AdGroupAdStatusMapperToString(googleAdsRow.AdGroupAd.Status)
+                            };
+
+                            AdDetails.Add(details);
+                        }
+                    }
+                );
+                return AdDetails;
+            }
+            catch (GoogleAdsException e)
+            {
+                Console.WriteLine("Failure:");
+                Console.WriteLine($"Message: {e.Message}");
+                Console.WriteLine($"Failure: {e.Failure}");
+                Console.WriteLine($"Request ID: {e.RequestId}");
+                throw;
+            }
+
+        }
         #endregion
-    
+
+
+
     }
 }
