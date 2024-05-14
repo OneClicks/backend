@@ -23,12 +23,18 @@ using backend.Helpers;
 using Google.Ads.GoogleAds.V16.Enums;
 using backend.DTOs.GoogleDtos;
 using backend.DTOs;
+using static Org.BouncyCastle.Math.EC.ECCurve;
+using static Google.Ads.GoogleAds.V16.Services.SuggestGeoTargetConstantsRequest.Types;
+using static Google.Ads.GoogleAds.V16.Enums.CustomizerAttributeTypeEnum.Types;
+using Google.LongRunning;
 
 namespace backend.Service
 {
     public class GoogleApiService : IGoogleApiService
     {
         private readonly HttpClient _httpClient;
+        private const string CUSTOMIZER_ATTRIBUTE_NAME = "Price";
+
 
         public GoogleApiService(HttpClient httpClient)
         {
@@ -60,8 +66,8 @@ namespace backend.Service
                 {
                     Console.WriteLine(
                         $"Found customer with resource name = '{customerResourceName}'.");
-                    
-                    
+
+
                 }
                 return new ResponseVM<object>("200", "", customerResourceNames);
             }
@@ -99,9 +105,9 @@ namespace backend.Service
 
                 }
             }
-            
+
         }
-     
+
 
         public async Task<ResponseVM<string>> GetRefreshToken(string code)
         {
@@ -363,7 +369,7 @@ namespace backend.Service
             }
             return "";
         }
-#endregion
+        #endregion
 
         #region CAMPAIGNS
         public async Task<List<object>> GetAllCampaigns(long customerId)
@@ -406,8 +412,8 @@ namespace backend.Service
                         {
                             var details = new
                             {
-                                Id = googleAdsRow.Campaign.Id,
-                                Name = googleAdsRow.Campaign.Name,
+                                CampaignId = googleAdsRow.Campaign.Id.ToString(),
+                                CampaignName = googleAdsRow.Campaign.Name,
                                 ManualCpc = googleAdsRow.Campaign.ManualCpc.EnhancedCpcEnabled ? "Enhanced Cpc Enabled" : "",
                                 Status = GoogleMapper.CampaignStatusToString(googleAdsRow.Campaign.Status),
                                 StartDate = googleAdsRow.Campaign.StartDate,
@@ -644,15 +650,15 @@ namespace backend.Service
         #region ADS GROUPS
         public async Task<ResponseVM<string>> CreateAdGroup(AdGroupDto adGroupObj)
         {
-                GoogleAdsConfig config = new GoogleAdsConfig()
-                {
-                    DeveloperToken = Constants.GoogleDeveloperToken,
-                    OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
-                    OAuth2ClientId = Constants.GoogleClientId,
-                    OAuth2ClientSecret = Constants.GoogleClientSecret,
-                    OAuth2RefreshToken = adGroupObj.RefreshToken,
-                    LoginCustomerId = adGroupObj.ManagerId.ToString()
-                };
+            GoogleAdsConfig config = new GoogleAdsConfig()
+            {
+                DeveloperToken = Constants.GoogleDeveloperToken,
+                OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
+                OAuth2ClientId = Constants.GoogleClientId,
+                OAuth2ClientSecret = Constants.GoogleClientSecret,
+                OAuth2RefreshToken = adGroupObj.RefreshToken,
+                LoginCustomerId = adGroupObj.ManagerId.ToString()
+            };
             GoogleAdsClient client = new GoogleAdsClient(config);
 
             AdGroupServiceClient adGroupService = client.GetService(Services.V16.AdGroupService);
@@ -664,7 +670,7 @@ namespace backend.Service
                 Status = GoogleMapper.AdGroupStatusMapper(adGroupObj.AdGroupStatus),
                 Campaign = ResourceNames.Campaign(adGroupObj.CustomerId, adGroupObj.CampaignId),
                 CpcBidMicros = (long)(double.Parse(adGroupObj.AdGroupBidAmount) * 1_000_000),
-                
+
             };
             AdGroupOperation operation = new AdGroupOperation()
             {
@@ -674,18 +680,32 @@ namespace backend.Service
             try
             {
                 // Create the ad groups.
-                MutateAdGroupsResponse response = adGroupService.MutateAdGroups(
+                MutateAdGroupsResponse response = await adGroupService.MutateAdGroupsAsync(
                     adGroupObj.CustomerId.ToString(), operations);
-
+                string adGroupResourceName = response.Results[0].ResourceName; //name of ad group
                 // Display the results.
                 foreach (MutateAdGroupResult newAdGroup in response.Results)
                 {
                     Console.WriteLine("Ad group with resource name '{0}' was created.",
                         newAdGroup.ResourceName);
                 }
+                string[] parts = adGroupResourceName.Split('/');
+                long adGroupId = long.Parse(parts.Last());
 
-                return new ResponseVM<string>("200", "Successfully created Ad group ");
+                string customizedAttribute = GetCustomizedAttribute(adGroupObj, adGroupId, adGroupResourceName);
 
+              //  var searchAdobj = CreateResponsiveSearchAdWithCustomization(adGroupObj, adGroupResourceName);
+                var keywordsObj = AddKeywords(adGroupObj, adGroupResourceName);
+                var geotargetingObj = AddGeoTargeting(adGroupObj);
+
+                if( keywordsObj.Result.StatusCode == "200" && geotargetingObj.Result.StatusCode == "200") 
+                {
+                    return new ResponseVM<string>("200", "Successfully created Ad group ", adGroupResourceName);
+                }
+                else
+                {
+                    return new ResponseVM<string>("400", "Failed to create Ad group ", adGroupResourceName);
+                }
             }
             catch (GoogleAdsException e)
             {
@@ -698,5 +718,373 @@ namespace backend.Service
         }
         #endregion
 
+        #region GetCustomizedAttribute
+        private string GetCustomizedAttribute(AdGroupDto adGroupObj,long adGroupId, string adGroupResourceName)
+        {
+            try
+            {
+                string textCustomizerAttributeResourceName = CreateTextCustomizerAttribute(adGroupObj, adGroupObj.SearchAds.CustomizerAttributeName);
+                string priceCustomizerAttributeResourceName = CreatePriceCustomizerAttribute(adGroupObj, adGroupObj.SearchAds.CustomizerAttributePrice);
+
+                LinkCustomizerAttributes(adGroupObj, adGroupId, textCustomizerAttributeResourceName, priceCustomizerAttributeResourceName);
+
+                // Create an ad with the customizations provided by the ad customizer attributes.
+                var searchAdobj = CreateResponsiveSearchAdWithCustomization(adGroupObj, adGroupResourceName);
+
+                return searchAdobj.Result.ResponseData.ToString();
+            }
+            catch (GoogleAdsException e)
+            {
+                Console.WriteLine("Failure:");
+                Console.WriteLine($"Message: {e.Message}");
+                Console.WriteLine($"Failure: {e.Failure}");
+                Console.WriteLine($"Request ID: {e.RequestId}");
+                throw;
+            }
+        }
+        private string CreateTextCustomizerAttribute(AdGroupDto adGroupObj, string customizerName)
+        {
+            GoogleAdsConfig config = new GoogleAdsConfig()
+            {
+                DeveloperToken = Constants.GoogleDeveloperToken,
+                OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
+                OAuth2ClientId = Constants.GoogleClientId,
+                OAuth2ClientSecret = Constants.GoogleClientSecret,
+                OAuth2RefreshToken = adGroupObj.RefreshToken,
+                LoginCustomerId = adGroupObj.ManagerId.ToString()
+            };
+            GoogleAdsClient client = new GoogleAdsClient(config);
+
+            CustomizerAttributeServiceClient customizerAttributeService = client.GetService(Services.V16.CustomizerAttributeService);
+
+            CustomizerAttribute textAttribute = new CustomizerAttribute()
+            {
+                Name = customizerName,
+                Type = CustomizerAttributeType.Text
+            };
+
+            CustomizerAttributeOperation textAttributeOperation = new CustomizerAttributeOperation()
+            {
+                Create = textAttribute
+            };
+
+            MutateCustomizerAttributesResponse response = customizerAttributeService.MutateCustomizerAttributes(adGroupObj.CustomerId.ToString(),
+                    new[] { textAttributeOperation });
+
+            string customizerAttributeResourceName = response.Results[0].ResourceName;
+            Console.WriteLine($"Added text customizer attribute with resource name" +$" '{customizerAttributeResourceName}'.");
+
+            return customizerAttributeResourceName;
+        }
+        private string CreatePriceCustomizerAttribute(AdGroupDto adGroupObj, string customizerName)
+        {
+            GoogleAdsConfig config = new GoogleAdsConfig()
+            {
+                DeveloperToken = Constants.GoogleDeveloperToken,
+                OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
+                OAuth2ClientId = Constants.GoogleClientId,
+                OAuth2ClientSecret = Constants.GoogleClientSecret,
+                OAuth2RefreshToken = adGroupObj.RefreshToken,
+                LoginCustomerId = adGroupObj.ManagerId.ToString()
+            };
+            GoogleAdsClient client = new GoogleAdsClient(config);
+
+            CustomizerAttributeServiceClient customizerAttributeService = client.GetService(Services.V16.CustomizerAttributeService);
+
+            CustomizerAttribute priceAttribute = new CustomizerAttribute()
+            {
+                Name = customizerName,
+                Type = CustomizerAttributeType.Price
+            };
+
+            CustomizerAttributeOperation priceAttributeOperation = new CustomizerAttributeOperation()
+            {
+                Create = priceAttribute
+            };
+
+            MutateCustomizerAttributesResponse response = customizerAttributeService.MutateCustomizerAttributes(adGroupObj.CustomerId.ToString(),
+                    new[] { priceAttributeOperation });
+
+            string customizerAttributeResourceName = response.Results[0].ResourceName;
+            Console.WriteLine($"Added price customizer attribute with resource name" +$" '{customizerAttributeResourceName}'.");
+
+            return customizerAttributeResourceName;
+        }
+        private void LinkCustomizerAttributes(AdGroupDto adGroupObj, long adGroupId, string textCustomizerAttributeResourceName, string priceCustomizerAttributeResourceName)
+        {
+            GoogleAdsConfig config = new GoogleAdsConfig()
+            {
+                DeveloperToken = Constants.GoogleDeveloperToken,
+                OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
+                OAuth2ClientId = Constants.GoogleClientId,
+                OAuth2ClientSecret = Constants.GoogleClientSecret,
+                OAuth2RefreshToken = adGroupObj.RefreshToken,
+                LoginCustomerId = adGroupObj.ManagerId.ToString()
+            };
+            GoogleAdsClient client = new GoogleAdsClient(config);
+            AdGroupCustomizerServiceClient adGroupCustomizerService = client.GetService(Services.V16.AdGroupCustomizerService);
+
+            List<AdGroupCustomizerOperation> adGroupCustomizerOperations = new List<AdGroupCustomizerOperation>();
+
+            AdGroupCustomizer marsCustomizer = new AdGroupCustomizer()
+            {
+                CustomizerAttribute = textCustomizerAttributeResourceName,
+                Value = new CustomizerValue()
+                {
+                    Type = CustomizerAttributeType.Text,
+                    StringValue = "Mars"
+                },
+                AdGroup = ResourceNames.AdGroup(adGroupObj.CustomerId, adGroupId)
+            };
+
+            adGroupCustomizerOperations.Add(new AdGroupCustomizerOperation()
+            {
+                Create = marsCustomizer
+            });
+
+            AdGroupCustomizer priceCustomizer = new AdGroupCustomizer()
+            {
+                CustomizerAttribute = priceCustomizerAttributeResourceName,
+                Value = new CustomizerValue()
+                {
+                    Type = CustomizerAttributeType.Price,
+                    StringValue = "100.0€"
+                },
+                AdGroup = ResourceNames.AdGroup(adGroupObj.CustomerId, adGroupId)
+            };
+
+            adGroupCustomizerOperations.Add(new AdGroupCustomizerOperation()
+            {
+                Create = priceCustomizer
+            });
+
+            MutateAdGroupCustomizersResponse response = adGroupCustomizerService.MutateAdGroupCustomizers(adGroupObj.CustomerId.ToString(),
+                    adGroupCustomizerOperations);
+
+            foreach (MutateAdGroupCustomizerResult result in response.Results)
+            {
+                Console.WriteLine($"Added an ad group customizer with resource name '{result.ResourceName}'.");
+            }
+        }
+
+        #endregion
+
+        #region CREATE RESPONSIVE SEARCH ADS
+        public async Task<ResponseVM<string>> CreateResponsiveSearchAdWithCustomization(AdGroupDto adGroupObj, string adGroupResourceName)
+        {
+            GoogleAdsConfig config = new GoogleAdsConfig()
+            {
+                DeveloperToken = Constants.GoogleDeveloperToken,
+                OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
+                OAuth2ClientId = Constants.GoogleClientId,
+                OAuth2ClientSecret = Constants.GoogleClientSecret,
+                OAuth2RefreshToken = adGroupObj.RefreshToken,
+                LoginCustomerId = adGroupObj.ManagerId.ToString()
+            };
+
+            AdGroupAdOperation operation = new AdGroupAdOperation()
+            {
+                Create = new AdGroupAd()
+                {
+                    AdGroup = adGroupResourceName,
+                    Status = GoogleMapper.AdGroupAdStatusMapper(adGroupObj.AdGroupStatus),
+
+                    Ad = new Ad()
+                    {
+                        ResponsiveSearchAd = new ResponsiveSearchAdInfo()
+                        {
+                            Headlines =
+                            {
+                                new AdTextAsset() { Text = "Cruise to Mars" },
+                                new AdTextAsset() { Text = "Best Space Cruise Line" },
+                                new AdTextAsset() { Text = "Experience the Stars" }
+                            },
+
+                            Descriptions =
+                            {
+                                new AdTextAsset() { Text = "Buy your tickets now" },
+                                new AdTextAsset()
+                                {
+                                    Text = $"Cruise to {{CUSTOMIZER.{adGroupObj.SearchAds.CustomizerAttributeName}:Venus}} for {{CUSTOMIZER.{adGroupObj.SearchAds.CustomizerAttributePrice
+                                    }:10.0€}}"
+                                }
+                            },
+
+                           // Path1 = "all-inclusive",
+                           // Path2 = "deals"
+                        },
+
+                        FinalUrls = { adGroupObj.SearchAds.TargetUrl }
+                    }
+                }
+            };
+            GoogleAdsClient client = new GoogleAdsClient(config);
+
+            AdGroupAdServiceClient serviceClient = client.GetService(Services.V16.AdGroupAdService);
+            try
+            {
+                MutateAdGroupAdsResponse response = serviceClient.MutateAdGroupAds(adGroupObj.CustomerId.ToString(),
+                    new[] { operation }.ToList());
+
+                string resourceName = response.Results[0].ResourceName;
+                return new ResponseVM<string>("200", "Successfully created responsive search ad with resource name: ", resourceName);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
+                return new ResponseVM<string>("500", "Error occurred: " + ex.Message, null);
+            }
+           
+        }
+
+        public async Task<ResponseVM<string>> AddKeywords(AdGroupDto adGroupObj, string adGroupResourceName)
+        {
+            GoogleAdsConfig config = new GoogleAdsConfig()
+            {
+                DeveloperToken = Constants.GoogleDeveloperToken,
+                OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
+                OAuth2ClientId = Constants.GoogleClientId,
+                OAuth2ClientSecret = Constants.GoogleClientSecret,
+                OAuth2RefreshToken = adGroupObj.RefreshToken,
+                LoginCustomerId = adGroupObj.ManagerId.ToString()
+            };
+
+            GoogleAdsClient client = new GoogleAdsClient(config);
+            AdGroupCriterionServiceClient adGroupCriterionService = client.GetService(Services.V16.AdGroupCriterionService);
+
+            List<AdGroupCriterionOperation> operations = new List<AdGroupCriterionOperation>();
+
+            AdGroupCriterionOperation exactMatchOperation = new AdGroupCriterionOperation()
+            {
+                Create = new AdGroupCriterion()
+                {
+                    AdGroup = adGroupResourceName,
+                    Status = GoogleMapper.AdGroupCriterionStatusMapper(adGroupObj.AdGroupStatus),
+                    Keyword = new KeywordInfo()
+                    {
+                        Text = adGroupObj.Keywords.Keywords,
+                        MatchType = GoogleMapper.KeywordMatchTypeMapper("Exact")
+                    },
+                //    Negative = adGroupObj.Keywords.Negative,
+                }
+            };
+            operations.Add(exactMatchOperation);
+
+            AdGroupCriterionOperation phraseMatchOperation = new AdGroupCriterionOperation()
+            {
+                Create = new AdGroupCriterion()
+                {
+                    AdGroup = adGroupResourceName,
+                    Status = GoogleMapper.AdGroupCriterionStatusMapper(adGroupObj.AdGroupStatus),
+                    Keyword = new KeywordInfo()
+                    {
+                        Text = adGroupObj.Keywords.Keywords,
+                        MatchType = GoogleMapper.KeywordMatchTypeMapper("Phrase")
+                    },
+                 //   Negative = adGroupObj.Keywords.Negative,
+                }
+            };
+            operations.Add(phraseMatchOperation);
+
+            AdGroupCriterionOperation broadMatchOperation = new AdGroupCriterionOperation()
+            {
+                Create = new AdGroupCriterion()
+                {
+                    AdGroup = adGroupResourceName,
+                    Status = GoogleMapper.AdGroupCriterionStatusMapper(adGroupObj.AdGroupStatus),
+                    Keyword = new KeywordInfo()
+                    {
+                        Text = adGroupObj.Keywords.Keywords,
+                        MatchType = GoogleMapper.KeywordMatchTypeMapper("Broad")
+                    },
+                     //   Negative = adGroupObj.Keywords.Negative
+                    
+                }
+            };
+            operations.Add(broadMatchOperation);
+
+            MutateAdGroupCriteriaResponse response = await
+                adGroupCriterionService.MutateAdGroupCriteriaAsync(adGroupObj.CustomerId.ToString(), operations);
+
+            foreach (MutateAdGroupCriterionResult newAdGroupCriterion in response.Results)
+            {
+                Console.WriteLine("Keyword with resource name '{0}' was created.",
+                    newAdGroupCriterion.ResourceName);
+            }
+            return new ResponseVM<string>("200", "Successfuly created Keyword with resource name: ", response.Results[0].ResourceName);
+        }
+
+        public async Task<ResponseVM<string>> AddGeoTargeting(AdGroupDto adGroupObj)
+        {
+            GoogleAdsConfig config = new GoogleAdsConfig()
+            {
+                DeveloperToken = Constants.GoogleDeveloperToken,
+                OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
+                OAuth2ClientId = Constants.GoogleClientId,
+                OAuth2ClientSecret = Constants.GoogleClientSecret,
+                OAuth2RefreshToken = adGroupObj.RefreshToken,
+                LoginCustomerId = adGroupObj.ManagerId.ToString()
+            };
+
+            GoogleAdsClient client = new GoogleAdsClient(config);
+            GeoTargetConstantServiceClient geoTargetConstantService = client.GetService(Services.V16.GeoTargetConstantService);
+
+            var campaignName =await  GetAllCampaigns(adGroupObj.CustomerId);
+
+            SuggestGeoTargetConstantsRequest suggestGeoTargetConstantsRequest = new SuggestGeoTargetConstantsRequest()
+            {
+                // Locale uses the ISO 639-1 format.
+                Locale = "es",
+                CountryCode = adGroupObj.GeoTargeting.CountryCode,
+                LocationNames = new LocationNames()
+                {
+                    Names = { adGroupObj.GeoTargeting.CityName}
+                }
+            };
+
+            SuggestGeoTargetConstantsResponse suggestGeoTargetConstantsResponse = geoTargetConstantService.SuggestGeoTargetConstants(suggestGeoTargetConstantsRequest);
+
+            List<CampaignCriterionOperation> operations = new List<CampaignCriterionOperation>();
+            foreach (GeoTargetConstantSuggestion suggestion in suggestGeoTargetConstantsResponse.GeoTargetConstantSuggestions)
+            {
+                Console.WriteLine($"Geo target constant: {suggestion.GeoTargetConstant.Name} was " +
+                $"found in locale ({suggestion.Locale}) with reach ({suggestion.Reach}) from " +
+                $"search term ({suggestion.SearchTerm})");
+
+                CampaignCriterionOperation operation = new CampaignCriterionOperation()
+                {
+                    Create = new CampaignCriterion()
+                    {
+                        Campaign = ResourceNames.Campaign(adGroupObj.CustomerId, adGroupObj.CampaignId),
+                        Location = new LocationInfo()
+                        {
+                            GeoTargetConstant = suggestion.GeoTargetConstant.ResourceName
+                        }
+                    }
+                };
+                operations.Add(operation);
+            }
+
+            CampaignCriterionServiceClient campaignCriterionService = client.GetService(Services.V16.CampaignCriterionService);
+            try
+            {
+                MutateCampaignCriteriaResponse mutateCampaignCriteriaResponse = campaignCriterionService.MutateCampaignCriteria(adGroupObj.CustomerId.ToString(), operations);
+                foreach (MutateCampaignCriterionResult result in mutateCampaignCriteriaResponse.Results)
+                {
+                    Console.WriteLine($"Added campaign criterion {result.ResourceName}");
+                }
+                return new ResponseVM<string>("200", "Successfuly Added campaign criterion: ", mutateCampaignCriteriaResponse.Results[0].ResourceName);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
+                return new ResponseVM<string>("500", "Error occurred: " + ex.Message, null);
+            }
+
+
+        
+        }
+        #endregion
+    
     }
 }

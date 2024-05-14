@@ -136,7 +136,7 @@ namespace backend.Controllers
             {
                 Console.WriteLine(ex.ToString());
                 _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
-                return StatusCode(503, "An error occurred fetching all categories");
+                return StatusCode(503, "An error occurred creating ad group");
             }
         }
 

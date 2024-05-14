@@ -12,7 +12,9 @@ namespace backend.Service.Interfaces
         Task<ResponseVM<string>> CreateCampaigns(GoogleCampaignDto campaignDto);
         Task<ResponseVM<object>> GetAccessibleAccounts(string v);
         Task<List<object>> GetAllCampaigns(long customerId);
-
         Task<ResponseVM<string>> CreateAdGroup(AdGroupDto adGroupObj);
+        Task<ResponseVM<string>> CreateResponsiveSearchAdWithCustomization(AdGroupDto adGroupObj, string adGroupResourceName);
+        Task<ResponseVM<string>> AddKeywords(AdGroupDto adGroupObj, string adGroupResourceName);
+        Task<ResponseVM<string>> AddGeoTargeting(AdGroupDto adGroupObj );
     }
 }
