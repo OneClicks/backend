@@ -16,6 +16,7 @@
         public string EndDate { get; set; }
         public string Status { get; set; }
         public long CustomerId { get; set; }
+        public long ManagerId { get; set; }
         public string RefreshToken { get; set; }
         public string Type { get; set; }
     }

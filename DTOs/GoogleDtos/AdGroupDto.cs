@@ -10,6 +10,7 @@
         public string AdGroupStatus { get; set; }
         public string RefreshToken { get; set; }
         public long ManagerId { get; set; }
+        public string Type { get; set; }
         public SearchAdDto SearchAds { get; set; }
         public KeywordsDto Keywords { get; set; }
         public GeoTargetingDto GeoTargeting { get; set; }
