@@ -1,10 +1,13 @@
 ﻿using Google.Ads.GoogleAds.V16.Resources;
 using System.Security.Cryptography;
 using System.Text;
+using static Google.Ads.GoogleAds.V16.Enums.AdGroupAdStatusEnum.Types;
+using static Google.Ads.GoogleAds.V16.Enums.AdGroupCriterionStatusEnum.Types;
 using static Google.Ads.GoogleAds.V16.Enums.AdGroupStatusEnum.Types;
 using static Google.Ads.GoogleAds.V16.Enums.AdvertisingChannelTypeEnum.Types;
 using static Google.Ads.GoogleAds.V16.Enums.BudgetDeliveryMethodEnum.Types;
 using static Google.Ads.GoogleAds.V16.Enums.CampaignStatusEnum.Types;
+using static Google.Ads.GoogleAds.V16.Enums.KeywordMatchTypeEnum.Types;
 
 namespace backend.Helpers
 {
@@ -105,6 +108,7 @@ namespace backend.Helpers
                 _ => throw new ArgumentException($"Invalid AdGroupStatus : {status}")
             };
         }
+
         public static BudgetDeliveryMethod BudgetDeliveryMethodMapper(string deliveryMethod)
         {
             return deliveryMethod.ToUpper() switch
@@ -128,6 +132,42 @@ namespace backend.Helpers
             };
         }
 
+        public static AdGroupAdStatus AdGroupAdStatusMapper(string status)
+        {
+            return status.ToUpper() switch
+            {
+                "ENABLED" => AdGroupAdStatus.Enabled,
+                "PAUSED" => AdGroupAdStatus.Paused,
+                "REMOVED" => AdGroupAdStatus.Removed,
+                "UNKNOWN" => AdGroupAdStatus.Unknown,
+                "UNSPECIFIED" => AdGroupAdStatus.Unspecified,
+                _ => throw new ArgumentException($"Invalid AdGroupAdStatus: {status}")
+            };
+        }
+        public static AdGroupCriterionStatus AdGroupCriterionStatusMapper(string status)
+        {
+            return status.ToUpper() switch
+            {
+                "ENABLED" => AdGroupCriterionStatus.Enabled,
+                "PAUSED" => AdGroupCriterionStatus.Paused,
+                "REMOVED" => AdGroupCriterionStatus.Removed,
+                "UNKNOWN" => AdGroupCriterionStatus.Unknown,
+                "UNSPECIFIED" => AdGroupCriterionStatus.Unspecified,
+                _ => throw new ArgumentException($"Invalid AdGroupCriterionStatus: {status}")
+            };
+        }
+        public static KeywordMatchType KeywordMatchTypeMapper(string matchType)
+        {
+            return matchType.ToUpper() switch
+            {
+                "EXACT" => KeywordMatchType.Exact,
+                "PHRASE" => KeywordMatchType.Phrase,
+                "BROAD" => KeywordMatchType.Broad,
+                "UNKNOWN" => KeywordMatchType.Unknown,
+                "UNSPECIFIED" => KeywordMatchType.Unspecified,
+                _ => throw new ArgumentException($"Invalid KeywordMatchType: {matchType}")
+            };
+        }
     }
 
 
