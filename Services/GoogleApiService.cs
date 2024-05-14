@@ -372,7 +372,7 @@ namespace backend.Service
         #endregion
 
         #region CAMPAIGNS
-        public async Task<List<object>> GetAllCampaigns(long customerId)
+        public async Task<List<object>> GetAllCampaigns(string refreshToken, long customerId)
         {
             GoogleAdsConfig config = new GoogleAdsConfig()
             {
@@ -380,17 +380,13 @@ namespace backend.Service
                 OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
                 OAuth2ClientId = Constants.GoogleClientId,
                 OAuth2ClientSecret = Constants.GoogleClientSecret,
-                OAuth2RefreshToken = "1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
+                OAuth2RefreshToken = refreshToken,
+                //"1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
                 LoginCustomerId = Constants.GoogleCustomerId.ToString()
             };
 
             GoogleAdsClient client = new GoogleAdsClient(config);
-
-            // Get the GoogleAdsService.
-
             var googleAdsService = client.GetService(Services.V16.GoogleAdsService);
-
-            // Create a query that will retrieve all campaigns.
 
             string query = @"SELECT
                                 campaign.id,
@@ -436,8 +432,6 @@ namespace backend.Service
             }
 
         }
-
-
 
         #region OLD CODE WITHOUT AWAIT 
         //public async Task<ResponseVM<string>> CreateCampaigns(GoogleCampaignDto campaignDto)
@@ -564,14 +558,14 @@ namespace backend.Service
                     OAuth2ClientId = Constants.GoogleClientId,
                     OAuth2ClientSecret = Constants.GoogleClientSecret,
                     OAuth2RefreshToken = campaignDto.RefreshToken,
-                    LoginCustomerId = campaignDto.CustomerId.ToString()
+                    LoginCustomerId = campaignDto.ManagerId.ToString()
                 };
 
-                GoogleAdsClient client = new GoogleAdsClient();
+                GoogleAdsClient client = new GoogleAdsClient(config);
                 CampaignServiceClient campaignService = client.GetService(Services.V16.CampaignService);
 
                 // Create a budget to be used for the campaign.
-                string budget = await CreateBudget(client, campaignDto);
+                string budget = await CreateBudget(campaignDto);
 
                 List<CampaignOperation> operations = new List<CampaignOperation>();
 
@@ -623,8 +617,20 @@ namespace backend.Service
             }
         }
 
-        private static async Task<string> CreateBudget(GoogleAdsClient client, GoogleCampaignDto dto)
+        private static async Task<string> CreateBudget( GoogleCampaignDto dto)
         {
+            GoogleAdsConfig config = new GoogleAdsConfig()
+            {
+                DeveloperToken = Constants.GoogleDeveloperToken,
+                OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
+                OAuth2ClientId = Constants.GoogleClientId,
+                OAuth2ClientSecret = Constants.GoogleClientSecret,
+                OAuth2RefreshToken = dto.RefreshToken,
+                LoginCustomerId = dto.ManagerId.ToString()
+            };
+
+            GoogleAdsClient client = new GoogleAdsClient(config);
+
             CampaignBudgetServiceClient budgetService = client.GetService(
                 Services.V16.CampaignBudgetService);
 
@@ -640,10 +646,21 @@ namespace backend.Service
                 Create = budget
             };
 
-            MutateCampaignBudgetsResponse response = await budgetService.MutateCampaignBudgetsAsync(
-                dto.CustomerId.ToString(), new CampaignBudgetOperation[] { budgetOperation });
+            try
+            {
 
-            return response.Results[0].ResourceName;
+                MutateCampaignBudgetsResponse response = await budgetService.MutateCampaignBudgetsAsync(
+                    dto.CustomerId.ToString(), new CampaignBudgetOperation[] { budgetOperation });
+                return response.Results[0].ResourceName;
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failure:");
+                Console.WriteLine($"Message: {e.Message}");
+                throw new Exception($"Google Ads API request failed: {e.Message}", e);
+            }
+
         }
         #endregion
 
@@ -718,7 +735,7 @@ namespace backend.Service
         }
         #endregion
 
-        #region GetCustomizedAttribute
+     /*   #region GetCustomizedAttribute
         private string GetCustomizedAttribute(AdGroupDto adGroupObj,long adGroupId, string adGroupResourceName)
         {
             try
@@ -867,7 +884,7 @@ namespace backend.Service
             }
         }
 
-        #endregion
+        #endregion*/
 
         #region  RESPONSIVE SEARCH ADS
         public async Task<ResponseVM<string>> CreateResponsiveSearchAdWithCustomization(AdGroupDto adGroupObj, string adGroupResourceName)
@@ -1025,7 +1042,7 @@ namespace backend.Service
             GoogleAdsClient client = new GoogleAdsClient(config);
             GeoTargetConstantServiceClient geoTargetConstantService = client.GetService(Services.V16.GeoTargetConstantService);
 
-            var campaignName =await  GetAllCampaigns(adGroupObj.CustomerId);
+            var campaignName =await  GetAllCampaigns(adGroupObj.RefreshToken, adGroupObj.CustomerId);
 
             SuggestGeoTargetConstantsRequest suggestGeoTargetConstantsRequest = new SuggestGeoTargetConstantsRequest()
             {
@@ -1081,9 +1098,7 @@ namespace backend.Service
         
         }
 
-
-
-        public async Task<List<object>> GetAllResponseAds(long customerId)
+        public async Task<ResponseVM<List<object>>> GetAllResponseAds(string refreshToken, long customerId)
         {
             GoogleAdsConfig config = new GoogleAdsConfig()
             {
@@ -1091,26 +1106,22 @@ namespace backend.Service
                 OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
                 OAuth2ClientId = Constants.GoogleClientId,
                 OAuth2ClientSecret = Constants.GoogleClientSecret,
-                OAuth2RefreshToken = "1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
-                LoginCustomerId = Constants.GoogleCustomerId.ToString()
+                OAuth2RefreshToken = refreshToken,
+                //"1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
+                LoginCustomerId = customerId.ToString()
             };
 
             GoogleAdsClient client = new GoogleAdsClient(config);
-
-            // Get the GoogleAdsService.
-
             var googleAdsService = client.GetService(Services.V16.GoogleAdsService);
-
-            // Create a query that will retrieve all campaigns.
-
+          
             string query = @"SELECT
-                                ad_group.id,
-                                ad_group_ad.ad.id,
-                                ad_group_ad.ad.responsive_search_ad.headlines,
-                                ad_group_ad.ad.responsive_search_ad.descriptions,
-                                ad_group_ad.status
-                            FROM ad_group_ad
-                            WHERE ad_group_ad.ad.type = RESPONSIVE_SEARCH_AD";
+                            ad_group.id,
+                            ad_group_ad.ad.id,
+                            ad_group_ad.ad.responsive_search_ad.headlines,
+                            ad_group_ad.ad.responsive_search_ad.descriptions,
+                            ad_group_ad.status
+                        FROM ad_group_ad
+                        WHERE ad_group_ad.ad.type = RESPONSIVE_SEARCH_AD";
 
             try
             {
@@ -1124,16 +1135,17 @@ namespace backend.Service
                             {
                                 AdId = googleAdsRow.AdGroupAd.Ad.Id,
                                 AdName = googleAdsRow.AdGroupAd.Ad.Name,
-                                headlines = googleAdsRow.AdGroupAd.Ad.ResponsiveSearchAd.Headlines,
-                                descriptions = googleAdsRow.AdGroupAd.Ad.ResponsiveSearchAd.Descriptions,
-                                status = GoogleMapper.AdGroupAdStatusMapperToString(googleAdsRow.AdGroupAd.Status)
+                                Headlines = googleAdsRow.AdGroupAd.Ad.ResponsiveSearchAd.Headlines,
+                                Descriptions = googleAdsRow.AdGroupAd.Ad.ResponsiveSearchAd.Descriptions,
+                                Status = GoogleMapper.AdGroupAdStatusMapperToString(googleAdsRow.AdGroupAd.Status),
+                                Type = "Google" 
                             };
 
                             AdDetails.Add(details);
                         }
                     }
                 );
-                return AdDetails;
+                return new ResponseVM<List<object>>("200", "Successfully fetched all ads", AdDetails);
             }
             catch (GoogleAdsException e)
             {

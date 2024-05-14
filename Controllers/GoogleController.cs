@@ -2,6 +2,7 @@
 using backend.Entities;
 using backend.Service.Interfaces;
 using backend.ViewModels;
+using Google.Apis.Auth.OAuth2.Requests;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -101,16 +102,16 @@ namespace backend.Controllers
             {
                 Console.WriteLine(ex.ToString());
                 _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
-                return StatusCode(503, "An error occurred fetching all categories");
+                return StatusCode(503, "An error occurred creating campaign");
             }
         }
 
         [HttpGet("GetAllCampaigns")]
-        public async Task<IActionResult> GetAllCampaigns([FromQuery] long customerId)
+        public async Task<IActionResult> GetAllCampaigns([FromQuery] string refreshToken, [FromQuery] long customerId)
         {
             try
             {
-                var data = await _googleApiService.GetAllCampaigns(customerId);
+                var data = await _googleApiService.GetAllCampaigns(refreshToken, customerId);
                 //_logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
             }
@@ -118,7 +119,7 @@ namespace backend.Controllers
             {
                 Console.WriteLine(ex.ToString());
                 _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
-                return StatusCode(503, "An error occurred fetching all categories");
+                return StatusCode(503, "An error occurred fetching all campaigns");
             }
         }
 
@@ -137,6 +138,23 @@ namespace backend.Controllers
                 Console.WriteLine(ex.ToString());
                 _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
                 return StatusCode(503, "An error occurred creating ad group");
+            }
+        }
+
+        [HttpGet("GetAllAds")]
+        public async Task<IActionResult> GetAllAds([FromQuery] string refreshToken, [FromQuery] long customerId)
+        {
+            try
+            {
+                var data = await _googleApiService.GetAllResponseAds(refreshToken, customerId);
+                //_logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred fetching all ads");
             }
         }
 
