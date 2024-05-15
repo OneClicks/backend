@@ -8,6 +8,7 @@ namespace backend.ServiceFiles.Interfaces
     {
         Task<ResponseVM<string>> GetRefreshToken(string code);
         Task<ResponseVM<string>> RevokeToken(string token);
+        Task<ResponseVM<string>> CreateCustomer(string refreshToken, long customerId);
         Task<ResponseVM<List<AccountHierarchyDto>>> GetAccountHierarchy(string refreshToken, long? customerId = null);
         Task<ResponseVM<string>> CreateCampaigns(GoogleCampaignDto campaignDto);
         Task<ResponseVM<object>> GetAccessibleAccounts(string v);

@@ -16,6 +16,8 @@ using Google.Api;
 using backend.Helpers;
 using backend.Entities;
 using backend.Repository.Interfaces;
+using static Google.Rpc.Context.AttributeContext.Types;
+
 namespace backend.ServiceFiles
 {
     public class GoogleApiService : IGoogleApiService
@@ -300,7 +302,7 @@ namespace backend.ServiceFiles
             return manager;
         }
 
-        public async Task<string> CreateCustomer(long customerId)
+        public async Task<ResponseVM<string>> CreateCustomer(string refreshToken, long customerId)
         {
             GoogleAdsConfig config = new GoogleAdsConfig()
             {
@@ -308,7 +310,8 @@ namespace backend.ServiceFiles
                 OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
                 OAuth2ClientId = Constants.GoogleClientId,
                 OAuth2ClientSecret = Constants.GoogleClientSecret,
-                OAuth2RefreshToken = "1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
+                OAuth2RefreshToken = refreshToken,
+                //"1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
                 LoginCustomerId = Constants.GoogleCustomerId.ToString()
             };
 
@@ -348,9 +351,10 @@ namespace backend.ServiceFiles
                 await _recentRepository.Create(temp);
 
                 // Display the result.
-                Console.WriteLine($"Created a customer with resource name " +
+
+                return new ResponseVM<string>("200", $"Created a customer with resource name " +
                     $"'{response.ResourceName}' under the manager account with customer " +
-                    $"ID '{Constants.GoogleCustomerId.ToString()}'");
+                    $"ID '{Constants.GoogleCustomerId.ToString()}'", response.ResourceName);
             }
             catch (GoogleAdsException e)
             {
@@ -360,7 +364,7 @@ namespace backend.ServiceFiles
                 Console.WriteLine($"Request ID: {e.RequestId}");
                 throw;
             }
-            return "";
+
         }
         #endregion
 
