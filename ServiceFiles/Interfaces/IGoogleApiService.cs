@@ -2,7 +2,7 @@
 using backend.Entities;
 using backend.ViewModels;
 
-namespace backend.Service.Interfaces
+namespace backend.ServiceFiles.Interfaces
 {
     public interface IGoogleApiService
     {

@@ -1,34 +1,20 @@
 ﻿using backend.Configurations;
-using backend.Service.Interfaces;
+using backend.ServiceFiles.Interfaces;
 using backend.ViewModels;
 using Google.Ads.GoogleAds.Config;
 using Google.Ads.GoogleAds.Lib;
-using Google.Ads.GoogleAds.V16.Services;
 using Google.Ads.GoogleAds.V16.Errors;
-using Google.Ads.GoogleAds;
 using Google.Ads.GoogleAds.V16.Resources;
+using Google.Ads.GoogleAds.V16.Services;
 using Google.Api.Gax;
-using Google.Ads.Gax.Examples;
 using static Google.Ads.GoogleAds.V16.Resources.Campaign.Types;
-using static Google.Ads.GoogleAds.V16.Enums.CampaignStatusEnum.Types;
-using static Google.Ads.GoogleAds.V16.Enums.AdvertisingChannelTypeEnum.Types;
 using Google.Ads.GoogleAds.V16.Common;
-using static Google.Ads.GoogleAds.V16.Enums.BudgetDeliveryMethodEnum.Types;
-using Google.Apis.Auth.OAuth2;
-using System.Reflection.Metadata;
-using System.Text.Json;
-using Newtonsoft.Json.Linq;
-using static Google.Rpc.Context.AttributeContext.Types;
-using backend.Helpers;
-using Google.Ads.GoogleAds.V16.Enums;
-using backend.DTOs.GoogleDtos;
-using backend.DTOs;
-using static Org.BouncyCastle.Math.EC.ECCurve;
 using static Google.Ads.GoogleAds.V16.Services.SuggestGeoTargetConstantsRequest.Types;
-using static Google.Ads.GoogleAds.V16.Enums.CustomizerAttributeTypeEnum.Types;
-using Google.LongRunning;
-
-namespace backend.Service
+using backend.DTOs.GoogleDtos;
+using Google.Ads.GoogleAds;
+using Google.Api;
+using backend.Helpers;
+namespace backend.ServiceFiles
 {
     public class GoogleApiService : IGoogleApiService
     {

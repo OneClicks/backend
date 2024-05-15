@@ -1,7 +1,7 @@
 ﻿using backend.DTOs;
 using backend.Entities;
-using backend.Services;
-using backend.Services.Interfaces;
+using backend.ServiceFiles;
+using backend.ServiceFiles.Interfaces;
 using backend.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;

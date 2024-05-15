@@ -1,6 +1,6 @@
 ﻿using backend.DTOs.GoogleDtos;
 using backend.Entities;
-using backend.Service.Interfaces;
+using backend.ServiceFiles.Interfaces;
 using backend.ViewModels;
 using Google.Apis.Auth.OAuth2.Requests;
 using Microsoft.AspNetCore.Http;
