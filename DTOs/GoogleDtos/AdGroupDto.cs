@@ -6,6 +6,8 @@
         public long CampaignId { get; set; }
         public string CampaignName { get; set; }
         public string AdGroupName { get; set; }
+        public string AdName { get; set; }
+
         public string AdGroupBidAmount { get; set; }
         public string AdGroupStatus { get; set; }
         public string RefreshToken { get; set; }

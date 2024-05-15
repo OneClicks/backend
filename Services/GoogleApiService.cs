@@ -735,156 +735,158 @@ namespace backend.Service
         }
         #endregion
 
-     /*   #region GetCustomizedAttribute
-        private string GetCustomizedAttribute(AdGroupDto adGroupObj,long adGroupId, string adGroupResourceName)
-        {
-            try
-            {
-                string textCustomizerAttributeResourceName = CreateTextCustomizerAttribute(adGroupObj, adGroupObj.SearchAds.CustomizerAttributeName);
-                string priceCustomizerAttributeResourceName = CreatePriceCustomizerAttribute(adGroupObj, adGroupObj.SearchAds.CustomizerAttributePrice);
+        #region customizer
+        /*   #region GetCustomizedAttribute
+           private string GetCustomizedAttribute(AdGroupDto adGroupObj,long adGroupId, string adGroupResourceName)
+           {
+               try
+               {
+                   string textCustomizerAttributeResourceName = CreateTextCustomizerAttribute(adGroupObj, adGroupObj.SearchAds.CustomizerAttributeName);
+                   string priceCustomizerAttributeResourceName = CreatePriceCustomizerAttribute(adGroupObj, adGroupObj.SearchAds.CustomizerAttributePrice);
 
-                LinkCustomizerAttributes(adGroupObj, adGroupId, textCustomizerAttributeResourceName, priceCustomizerAttributeResourceName);
+                   LinkCustomizerAttributes(adGroupObj, adGroupId, textCustomizerAttributeResourceName, priceCustomizerAttributeResourceName);
 
-                // Create an ad with the customizations provided by the ad customizer attributes.
-                var searchAdobj = CreateResponsiveSearchAdWithCustomization(adGroupObj, adGroupResourceName);
+                   // Create an ad with the customizations provided by the ad customizer attributes.
+                   var searchAdobj = CreateResponsiveSearchAdWithCustomization(adGroupObj, adGroupResourceName);
 
-                return searchAdobj.Result.ResponseData.ToString();
-            }
-            catch (GoogleAdsException e)
-            {
-                Console.WriteLine("Failure:");
-                Console.WriteLine($"Message: {e.Message}");
-                Console.WriteLine($"Failure: {e.Failure}");
-                Console.WriteLine($"Request ID: {e.RequestId}");
-                throw;
-            }
-        }
-        private string CreateTextCustomizerAttribute(AdGroupDto adGroupObj, string customizerName)
-        {
-            GoogleAdsConfig config = new GoogleAdsConfig()
-            {
-                DeveloperToken = Constants.GoogleDeveloperToken,
-                OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
-                OAuth2ClientId = Constants.GoogleClientId,
-                OAuth2ClientSecret = Constants.GoogleClientSecret,
-                OAuth2RefreshToken = adGroupObj.RefreshToken,
-                LoginCustomerId = adGroupObj.ManagerId.ToString()
-            };
-            GoogleAdsClient client = new GoogleAdsClient(config);
+                   return searchAdobj.Result.ResponseData.ToString();
+               }
+               catch (GoogleAdsException e)
+               {
+                   Console.WriteLine("Failure:");
+                   Console.WriteLine($"Message: {e.Message}");
+                   Console.WriteLine($"Failure: {e.Failure}");
+                   Console.WriteLine($"Request ID: {e.RequestId}");
+                   throw;
+               }
+           }
+           private string CreateTextCustomizerAttribute(AdGroupDto adGroupObj, string customizerName)
+           {
+               GoogleAdsConfig config = new GoogleAdsConfig()
+               {
+                   DeveloperToken = Constants.GoogleDeveloperToken,
+                   OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
+                   OAuth2ClientId = Constants.GoogleClientId,
+                   OAuth2ClientSecret = Constants.GoogleClientSecret,
+                   OAuth2RefreshToken = adGroupObj.RefreshToken,
+                   LoginCustomerId = adGroupObj.ManagerId.ToString()
+               };
+               GoogleAdsClient client = new GoogleAdsClient(config);
 
-            CustomizerAttributeServiceClient customizerAttributeService = client.GetService(Services.V16.CustomizerAttributeService);
+               CustomizerAttributeServiceClient customizerAttributeService = client.GetService(Services.V16.CustomizerAttributeService);
 
-            CustomizerAttribute textAttribute = new CustomizerAttribute()
-            {
-                Name = customizerName,
-                Type = CustomizerAttributeType.Text
-            };
+               CustomizerAttribute textAttribute = new CustomizerAttribute()
+               {
+                   Name = customizerName,
+                   Type = CustomizerAttributeType.Text
+               };
 
-            CustomizerAttributeOperation textAttributeOperation = new CustomizerAttributeOperation()
-            {
-                Create = textAttribute
-            };
+               CustomizerAttributeOperation textAttributeOperation = new CustomizerAttributeOperation()
+               {
+                   Create = textAttribute
+               };
 
-            MutateCustomizerAttributesResponse response = customizerAttributeService.MutateCustomizerAttributes(adGroupObj.CustomerId.ToString(),
-                    new[] { textAttributeOperation });
+               MutateCustomizerAttributesResponse response = customizerAttributeService.MutateCustomizerAttributes(adGroupObj.CustomerId.ToString(),
+                       new[] { textAttributeOperation });
 
-            string customizerAttributeResourceName = response.Results[0].ResourceName;
-            Console.WriteLine($"Added text customizer attribute with resource name" +$" '{customizerAttributeResourceName}'.");
+               string customizerAttributeResourceName = response.Results[0].ResourceName;
+               Console.WriteLine($"Added text customizer attribute with resource name" +$" '{customizerAttributeResourceName}'.");
 
-            return customizerAttributeResourceName;
-        }
-        private string CreatePriceCustomizerAttribute(AdGroupDto adGroupObj, string customizerName)
-        {
-            GoogleAdsConfig config = new GoogleAdsConfig()
-            {
-                DeveloperToken = Constants.GoogleDeveloperToken,
-                OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
-                OAuth2ClientId = Constants.GoogleClientId,
-                OAuth2ClientSecret = Constants.GoogleClientSecret,
-                OAuth2RefreshToken = adGroupObj.RefreshToken,
-                LoginCustomerId = adGroupObj.ManagerId.ToString()
-            };
-            GoogleAdsClient client = new GoogleAdsClient(config);
+               return customizerAttributeResourceName;
+           }
+           private string CreatePriceCustomizerAttribute(AdGroupDto adGroupObj, string customizerName)
+           {
+               GoogleAdsConfig config = new GoogleAdsConfig()
+               {
+                   DeveloperToken = Constants.GoogleDeveloperToken,
+                   OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
+                   OAuth2ClientId = Constants.GoogleClientId,
+                   OAuth2ClientSecret = Constants.GoogleClientSecret,
+                   OAuth2RefreshToken = adGroupObj.RefreshToken,
+                   LoginCustomerId = adGroupObj.ManagerId.ToString()
+               };
+               GoogleAdsClient client = new GoogleAdsClient(config);
 
-            CustomizerAttributeServiceClient customizerAttributeService = client.GetService(Services.V16.CustomizerAttributeService);
+               CustomizerAttributeServiceClient customizerAttributeService = client.GetService(Services.V16.CustomizerAttributeService);
 
-            CustomizerAttribute priceAttribute = new CustomizerAttribute()
-            {
-                Name = customizerName,
-                Type = CustomizerAttributeType.Price
-            };
+               CustomizerAttribute priceAttribute = new CustomizerAttribute()
+               {
+                   Name = customizerName,
+                   Type = CustomizerAttributeType.Price
+               };
 
-            CustomizerAttributeOperation priceAttributeOperation = new CustomizerAttributeOperation()
-            {
-                Create = priceAttribute
-            };
+               CustomizerAttributeOperation priceAttributeOperation = new CustomizerAttributeOperation()
+               {
+                   Create = priceAttribute
+               };
 
-            MutateCustomizerAttributesResponse response = customizerAttributeService.MutateCustomizerAttributes(adGroupObj.CustomerId.ToString(),
-                    new[] { priceAttributeOperation });
+               MutateCustomizerAttributesResponse response = customizerAttributeService.MutateCustomizerAttributes(adGroupObj.CustomerId.ToString(),
+                       new[] { priceAttributeOperation });
 
-            string customizerAttributeResourceName = response.Results[0].ResourceName;
-            Console.WriteLine($"Added price customizer attribute with resource name" +$" '{customizerAttributeResourceName}'.");
+               string customizerAttributeResourceName = response.Results[0].ResourceName;
+               Console.WriteLine($"Added price customizer attribute with resource name" +$" '{customizerAttributeResourceName}'.");
 
-            return customizerAttributeResourceName;
-        }
-        private void LinkCustomizerAttributes(AdGroupDto adGroupObj, long adGroupId, string textCustomizerAttributeResourceName, string priceCustomizerAttributeResourceName)
-        {
-            GoogleAdsConfig config = new GoogleAdsConfig()
-            {
-                DeveloperToken = Constants.GoogleDeveloperToken,
-                OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
-                OAuth2ClientId = Constants.GoogleClientId,
-                OAuth2ClientSecret = Constants.GoogleClientSecret,
-                OAuth2RefreshToken = adGroupObj.RefreshToken,
-                LoginCustomerId = adGroupObj.ManagerId.ToString()
-            };
-            GoogleAdsClient client = new GoogleAdsClient(config);
-            AdGroupCustomizerServiceClient adGroupCustomizerService = client.GetService(Services.V16.AdGroupCustomizerService);
+               return customizerAttributeResourceName;
+           }
+           private void LinkCustomizerAttributes(AdGroupDto adGroupObj, long adGroupId, string textCustomizerAttributeResourceName, string priceCustomizerAttributeResourceName)
+           {
+               GoogleAdsConfig config = new GoogleAdsConfig()
+               {
+                   DeveloperToken = Constants.GoogleDeveloperToken,
+                   OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
+                   OAuth2ClientId = Constants.GoogleClientId,
+                   OAuth2ClientSecret = Constants.GoogleClientSecret,
+                   OAuth2RefreshToken = adGroupObj.RefreshToken,
+                   LoginCustomerId = adGroupObj.ManagerId.ToString()
+               };
+               GoogleAdsClient client = new GoogleAdsClient(config);
+               AdGroupCustomizerServiceClient adGroupCustomizerService = client.GetService(Services.V16.AdGroupCustomizerService);
 
-            List<AdGroupCustomizerOperation> adGroupCustomizerOperations = new List<AdGroupCustomizerOperation>();
+               List<AdGroupCustomizerOperation> adGroupCustomizerOperations = new List<AdGroupCustomizerOperation>();
 
-            AdGroupCustomizer marsCustomizer = new AdGroupCustomizer()
-            {
-                CustomizerAttribute = textCustomizerAttributeResourceName,
-                Value = new CustomizerValue()
-                {
-                    Type = CustomizerAttributeType.Text,
-                    StringValue = "Mars"
-                },
-                AdGroup = ResourceNames.AdGroup(adGroupObj.CustomerId, adGroupId)
-            };
+               AdGroupCustomizer marsCustomizer = new AdGroupCustomizer()
+               {
+                   CustomizerAttribute = textCustomizerAttributeResourceName,
+                   Value = new CustomizerValue()
+                   {
+                       Type = CustomizerAttributeType.Text,
+                       StringValue = "Mars"
+                   },
+                   AdGroup = ResourceNames.AdGroup(adGroupObj.CustomerId, adGroupId)
+               };
 
-            adGroupCustomizerOperations.Add(new AdGroupCustomizerOperation()
-            {
-                Create = marsCustomizer
-            });
+               adGroupCustomizerOperations.Add(new AdGroupCustomizerOperation()
+               {
+                   Create = marsCustomizer
+               });
 
-            AdGroupCustomizer priceCustomizer = new AdGroupCustomizer()
-            {
-                CustomizerAttribute = priceCustomizerAttributeResourceName,
-                Value = new CustomizerValue()
-                {
-                    Type = CustomizerAttributeType.Price,
-                    StringValue = "100.0€"
-                },
-                AdGroup = ResourceNames.AdGroup(adGroupObj.CustomerId, adGroupId)
-            };
+               AdGroupCustomizer priceCustomizer = new AdGroupCustomizer()
+               {
+                   CustomizerAttribute = priceCustomizerAttributeResourceName,
+                   Value = new CustomizerValue()
+                   {
+                       Type = CustomizerAttributeType.Price,
+                       StringValue = "100.0€"
+                   },
+                   AdGroup = ResourceNames.AdGroup(adGroupObj.CustomerId, adGroupId)
+               };
 
-            adGroupCustomizerOperations.Add(new AdGroupCustomizerOperation()
-            {
-                Create = priceCustomizer
-            });
+               adGroupCustomizerOperations.Add(new AdGroupCustomizerOperation()
+               {
+                   Create = priceCustomizer
+               });
 
-            MutateAdGroupCustomizersResponse response = adGroupCustomizerService.MutateAdGroupCustomizers(adGroupObj.CustomerId.ToString(),
-                    adGroupCustomizerOperations);
+               MutateAdGroupCustomizersResponse response = adGroupCustomizerService.MutateAdGroupCustomizers(adGroupObj.CustomerId.ToString(),
+                       adGroupCustomizerOperations);
 
-            foreach (MutateAdGroupCustomizerResult result in response.Results)
-            {
-                Console.WriteLine($"Added an ad group customizer with resource name '{result.ResourceName}'.");
-            }
-        }
+               foreach (MutateAdGroupCustomizerResult result in response.Results)
+               {
+                   Console.WriteLine($"Added an ad group customizer with resource name '{result.ResourceName}'.");
+               }
+           }
 
-        #endregion*/
+           #endregion*/
+        #endregion
 
         #region  RESPONSIVE SEARCH ADS
         public async Task<ResponseVM<string>> CreateResponsiveSearchAdWithCustomization(AdGroupDto adGroupObj, string adGroupResourceName)
@@ -904,10 +906,12 @@ namespace backend.Service
                 Create = new AdGroupAd()
                 {
                     AdGroup = adGroupResourceName,
+                    
                     Status = GoogleMapper.AdGroupAdStatusMapper(adGroupObj.AdGroupStatus),
 
                     Ad = new Ad()
                     {
+                        Name = adGroupObj.AdName,
                         ResponsiveSearchAd = new ResponsiveSearchAdInfo()
                         {
                             Headlines =
@@ -1098,7 +1102,7 @@ namespace backend.Service
         
         }
 
-        public async Task<ResponseVM<List<object>>> GetAllResponseAds(string refreshToken, long customerId)
+        public async Task<ResponseVM<List<object>>> GetAllResponseAds(string refreshToken, long customerId, long managerId)
         {
             GoogleAdsConfig config = new GoogleAdsConfig()
             {
@@ -1108,7 +1112,7 @@ namespace backend.Service
                 OAuth2ClientSecret = Constants.GoogleClientSecret,
                 OAuth2RefreshToken = refreshToken,
                 //"1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
-                LoginCustomerId = customerId.ToString()
+                LoginCustomerId = managerId.ToString()
             };
 
             GoogleAdsClient client = new GoogleAdsClient(config);
@@ -1116,6 +1120,8 @@ namespace backend.Service
           
             string query = @"SELECT
                             ad_group.id,
+                            ad_group.name,
+                            ad_group_ad.ad.name,
                             ad_group_ad.ad.id,
                             ad_group_ad.ad.responsive_search_ad.headlines,
                             ad_group_ad.ad.responsive_search_ad.descriptions,
@@ -1133,7 +1139,9 @@ namespace backend.Service
                         {
                             var details = new
                             {
+
                                 AdId = googleAdsRow.AdGroupAd.Ad.Id,
+                                AdGroupName = googleAdsRow.AdGroup.Name,
                                 AdName = googleAdsRow.AdGroupAd.Ad.Name,
                                 Headlines = googleAdsRow.AdGroupAd.Ad.ResponsiveSearchAd.Headlines,
                                 Descriptions = googleAdsRow.AdGroupAd.Ad.ResponsiveSearchAd.Descriptions,
