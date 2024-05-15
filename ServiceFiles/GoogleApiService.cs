@@ -14,6 +14,7 @@ using backend.DTOs.GoogleDtos;
 using Google.Ads.GoogleAds;
 using Google.Api;
 using backend.Helpers;
+using backend.Entities;
 namespace backend.ServiceFiles
 {
     public class GoogleApiService : IGoogleApiService
@@ -339,7 +340,11 @@ namespace backend.ServiceFiles
                 // Create the account.
                 CreateCustomerClientResponse response = googleAdsService.CreateCustomerClient(
                      Constants.GoogleCustomerId.ToString(), customer);
-
+                var temp = new RecentActivity
+                {
+                    Activity = "New Customer Created: Google",
+                    DateTime = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd hh:mm:ss tt")
+                };
                 // Display the result.
                 Console.WriteLine($"Created a customer with resource name " +
                     $"'{response.ResourceName}' under the manager account with customer " +
@@ -380,6 +385,7 @@ namespace backend.ServiceFiles
                                 campaign.status,
                                 campaign.manual_cpc.enhanced_cpc_enabled,
                                 campaign.start_date,
+                                campaign.campaign_budget,
                                 campaign.end_date
                                 FROM campaign
                                 ORDER BY campaign.id";
@@ -388,22 +394,26 @@ namespace backend.ServiceFiles
             {
                 List<object> campaignDetails = new List<object>();
                 googleAdsService.SearchStream(customerId.ToString(), query,
-                    delegate (SearchGoogleAdsStreamResponse resp)
+                    async delegate (SearchGoogleAdsStreamResponse resp)
                     {
                         foreach (GoogleAdsRow googleAdsRow in resp.Results)
                         {
-                            var details = new
-                            {
-                                CampaignId = googleAdsRow.Campaign.Id.ToString(),
-                                CampaignName = googleAdsRow.Campaign.Name,
-                                ManualCpc = googleAdsRow.Campaign.ManualCpc.EnhancedCpcEnabled ? "Enhanced Cpc Enabled" : "",
-                                Status = GoogleMapper.CampaignStatusToString(googleAdsRow.Campaign.Status),
-                                StartDate = googleAdsRow.Campaign.StartDate,
-                                EndDate = googleAdsRow.Campaign.EndDate
-                            };
 
-                            campaignDetails.Add(details);
-                        }
+                                var details = new
+                                {
+                                    CampaignId = googleAdsRow.Campaign.Id.ToString(),
+                                    CampaignName = googleAdsRow.Campaign.Name,
+                                    ManualCpc = googleAdsRow.Campaign.ManualCpc.EnhancedCpcEnabled ? "Enhanced Cpc Enabled" : "",
+                                    Status = GoogleMapper.CampaignStatusToString(googleAdsRow.Campaign.Status),
+                                    //Budget = googleAdsRow.Campaign.CampaignBudget,
+                                    StartDate = googleAdsRow.Campaign.StartDate,
+                                    EndDate = googleAdsRow.Campaign.EndDate,
+                                    Budget = await GetCampaignBudget(customerId.ToString(), Constants.GoogleCustomerId.ToString(),googleAdsRow.Campaign.CampaignBudget, refreshToken)
+
+                                };
+
+                                campaignDetails.Add(details);
+                        }   
                     }
                 );
                 return campaignDetails;
@@ -582,6 +592,11 @@ namespace backend.ServiceFiles
                 // Display the results.
                 if (retVal.Results.Count > 0)
                 {
+                    var temp = new RecentActivity
+                    {
+                        Activity = "New Camaign added : Google",
+                        DateTime = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd hh:mm:ss tt")
+                    };
                     foreach (MutateCampaignResult newCampaign in retVal.Results)
                     {
                         Console.WriteLine("Campaign with resource ID = '{0}' was added.",
@@ -593,6 +608,62 @@ namespace backend.ServiceFiles
                 {
                     Console.WriteLine("No campaigns were added.");
                     return new ResponseVM<string>("400", "Failed to create campaign");
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failure:");
+                Console.WriteLine($"Message: {e.Message}");
+                throw new Exception($"Google Ads API request failed: {e.Message}", e);
+            }
+        }
+        private async Task<string> GetCampaignBudget(string customerId, string managerId,string campaignId, string refreshToken)
+        {
+            GoogleAdsConfig config = new GoogleAdsConfig()
+            {
+                DeveloperToken = Constants.GoogleDeveloperToken,
+                OAuth2Mode = Google.Ads.Gax.Config.OAuth2Flow.APPLICATION,
+                OAuth2ClientId = Constants.GoogleClientId,
+                OAuth2ClientSecret = Constants.GoogleClientSecret,
+                OAuth2RefreshToken = refreshToken, // Replace with your refresh token
+                LoginCustomerId = managerId.ToString() // Replace with your manager ID
+            };
+
+            GoogleAdsClient client = new GoogleAdsClient(config);
+
+            string query = $@"SELECT
+                        campaign_budget.id,
+                        campaign_budget.amount_micros
+                          FROM campaign_budget
+                          WHERE campaign_budget.id = '{campaignId.Split('/').LastOrDefault()}'";
+
+            try
+            {
+                List<object> budgetDetails = new List<object>();
+                GoogleAdsServiceClient googleAdsService = client.GetService(Services.V16.GoogleAdsService);
+                googleAdsService.SearchStream(customerId, query,
+                    delegate (SearchGoogleAdsStreamResponse resp)
+                    {
+                        foreach (GoogleAdsRow googleAdsRow in resp.Results)
+                        {
+                            var budget = new
+                            {
+                                AmountMicros = googleAdsRow.CampaignBudget.AmountMicros
+                            };
+
+                            budgetDetails.Add(budget.AmountMicros);
+                        }
+                    }
+                );
+
+                // Assuming you only want the first result (there should be only one budget per campaign)
+                if (budgetDetails.Count > 0)
+                {
+                    return budgetDetails[0].ToString();
+                }
+                else
+                {
+                    return null;
                 }
             }
             catch (Exception e)
@@ -637,6 +708,11 @@ namespace backend.ServiceFiles
 
                 MutateCampaignBudgetsResponse response = await budgetService.MutateCampaignBudgetsAsync(
                     dto.CustomerId.ToString(), new CampaignBudgetOperation[] { budgetOperation });
+                var temp = new RecentActivity
+                {
+                    Activity = "New Budget Created for Campaign: Google",
+                    DateTime = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd hh:mm:ss tt")
+                };
                 return response.Results[0].ResourceName;
 
             }
@@ -687,9 +763,14 @@ namespace backend.ServiceFiles
                     adGroupObj.CustomerId.ToString(), operations);
                 string adGroupResourceName = response.Results[0].ResourceName; //name of ad group
                 // Display the results.
+                var temp = new RecentActivity
+                {
+                    Activity = "New AdGroup added : Google",
+                    DateTime = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd hh:mm:ss tt")
+                };
                 foreach (MutateAdGroupResult newAdGroup in response.Results)
                 {
-                    Console.WriteLine("Ad group with resource name '{0}' was created.",
+                    Console.WriteLine("Ads group with resource name '{0}' was created.",
                         newAdGroup.ResourceName);
                 }
                 string[] parts = adGroupResourceName.Split('/');
@@ -703,11 +784,11 @@ namespace backend.ServiceFiles
 
                 if( keywordsObj.Result.StatusCode == "200" && geotargetingObj.Result.StatusCode == "200") 
                 {
-                    return new ResponseVM<string>("200", "Successfully created Ad group ", adGroupResourceName);
+                    return new ResponseVM<string>("200", "Successfully created Ads group ", adGroupResourceName);
                 }
                 else
                 {
-                    return new ResponseVM<string>("400", "Failed to create Ad group ", adGroupResourceName);
+                    return new ResponseVM<string>("400", "Failed to create Ads group ", adGroupResourceName);
                 }
             }
             catch (GoogleAdsException e)
@@ -928,7 +1009,11 @@ namespace backend.ServiceFiles
             {
                 MutateAdGroupAdsResponse response = serviceClient.MutateAdGroupAds(adGroupObj.CustomerId.ToString(),
                     new[] { operation }.ToList());
-
+                var temp = new RecentActivity
+                {
+                    Activity = "New Ad Created : Google",
+                    DateTime = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd hh:mm:ss tt")
+                };
                 string resourceName = response.Results[0].ResourceName;
                 return new ResponseVM<string>("200", "Successfully created responsive search ad with resource name: ", resourceName);
             }

@@ -29,11 +29,14 @@ namespace backend.ServiceFiles
         private readonly IGenericRepository<Campaigns> _campaignRepository;
         private readonly IGenericRepository<Adset> _adsetRepository;
         private readonly IGenericRepository<AdCreative> _adcreativeRepository;
-        private readonly IGenericRepository<Ad> _adRepository;
+
+        private readonly IGenericRepository<RecentActivity> _recentRepository;
+
+        private readonly IGenericRepository<Ads> _adRepository;
 
         public FacebookApiService(HttpClient httpClient, IOptions<FacebookApiOptions> facebookApiOptions, 
             IGenericRepository<Campaigns> camRepository, IGenericRepository<Adset> adsetRepository,
-            IGenericRepository<AdCreative> adcreativeRepository, IGenericRepository<Ad> adRepository)
+            IGenericRepository<AdCreative> adcreativeRepository, IGenericRepository<Ads> adRepository)
             {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _facebookApiOptions = facebookApiOptions?.Value ?? throw new ArgumentNullException(nameof(facebookApiOptions));
@@ -173,6 +176,12 @@ namespace backend.ServiceFiles
                 if (response.IsSuccessStatusCode)
                 {
                     await _campaignRepository.Create(newCampaign);
+                    var temp = new RecentActivity
+                    {
+                        Activity = "New Campaign Added: Facebook",
+                        DateTime = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd hh:mm:ss tt")
+                    };
+                    await _recentRepository.Create(temp);
                     return new ResponseVM<HttpResponseMessage>("200", "Successfully Created campaign", response);
 
                 }
@@ -399,6 +408,12 @@ namespace backend.ServiceFiles
                 {
                     var content = await response.Content.ReadAsStringAsync();
                     await _adsetRepository.Create(adsetObj);
+                    var temp = new RecentActivity
+                    {
+                        Activity = "New Adset Added: Facebook",
+                        DateTime = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd hh:mm:ss tt")
+                    };
+                    await _recentRepository.Create(temp);
                     return new ResponseVM<HttpResponseMessage>("200", "Successfully created adset", response);
 
                 }
@@ -442,7 +457,7 @@ namespace backend.ServiceFiles
                     });
                 }
 
-                return new ResponseVM<object>("200", "Ad set data fetched", adSetData);
+                return new ResponseVM<object>("200", "Ads set data fetched", adSetData);
             }
         }
 
@@ -522,7 +537,12 @@ namespace backend.ServiceFiles
                     Type = creative.Type,
                 };
                 var responseCreative = await _adcreativeRepository.Create(adcreativeObj);
-                
+                var temp = new RecentActivity
+                {
+                    Activity = "New Creative Added: Facebook",
+                    DateTime = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd hh:mm:ss tt")
+                };
+                await _recentRepository.Create(temp);
                 return new ResponseVM<AdCreative>("200", "Successfully created adcreative", responseCreative);                               
             }
         }
@@ -552,6 +572,12 @@ namespace backend.ServiceFiles
                 var imageHash = imageData.GetProperty("hash").GetString();
                 if (imageHash != null)
                 {
+                    var temp = new RecentActivity
+                    {
+                        Activity = "New Image Added: Facebook",
+                        DateTime = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd hh:mm:ss tt")
+                    };
+                    await _recentRepository.Create(temp);
                     return new ResponseVM<string>("200", "Successfully created image hash", imageHash.ToString());
                 }
 
@@ -628,7 +654,7 @@ namespace backend.ServiceFiles
                     adCreativeData = adCreativeData
                 };
 
-                return new ResponseVM<object>("200", "Ad scheduled", responseDto);
+                return new ResponseVM<object>("200", "Ads scheduled", responseDto);
 
             }
         }
@@ -662,9 +688,9 @@ namespace backend.ServiceFiles
                 }
 
                 var responseContent = await response.Content.ReadAsStringAsync();
-                return new ResponseVM<string>("200", "Ad scheduled", responseContent); 
 
-                var adDto = new Ad
+
+                var adDto = new Ads
                 {
                     AdAccountId = ad.AdAccountId,
                     AdsetName = ad.AdsetId,
@@ -672,9 +698,15 @@ namespace backend.ServiceFiles
                     AdsetId = ad.AdsetId,
                     AccessToken = ad.AccessToken,
                 };
+                var temp = new RecentActivity
+                {
+                    Activity = "Ads Scheduled: Facebook",
+                    DateTime = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd hh:mm:ss tt")
+                };
+                await _recentRepository.Create(temp);
                 var responseAd = await _adRepository.Create(adDto);
-
-                return new ResponseVM<string>("200", "Successfully created adcreative", responseAd.ToString());
+                return new ResponseVM<string>("200", "Ads scheduled", responseContent);
+                //return new ResponseVM<string>("200", "Successfully created adcreative", responseAd.ToString());
             }
         }
         #endregion
