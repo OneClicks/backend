@@ -36,7 +36,8 @@ namespace backend.ServiceFiles
 
         public FacebookApiService(HttpClient httpClient, IOptions<FacebookApiOptions> facebookApiOptions, 
             IGenericRepository<Campaigns> camRepository, IGenericRepository<Adset> adsetRepository,
-            IGenericRepository<AdCreative> adcreativeRepository, IGenericRepository<Ads> adRepository)
+            IGenericRepository<AdCreative> adcreativeRepository, IGenericRepository<Ads> adRepository,
+            IGenericRepository<RecentActivity> recentRepository)
             {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _facebookApiOptions = facebookApiOptions?.Value ?? throw new ArgumentNullException(nameof(facebookApiOptions));
@@ -44,6 +45,7 @@ namespace backend.ServiceFiles
             _adsetRepository = adsetRepository;
             _adcreativeRepository = adcreativeRepository;
             _adRepository = adRepository;
+            _recentRepository = recentRepository;
         }
         public async Task<string> GetLongLivedToken(string accessToken)
         {
@@ -602,7 +604,7 @@ namespace backend.ServiceFiles
 
             using (var httpClient = new HttpClient())
             {
-                var url = $"https://graph.facebook.com/v18.0/act_{adAccountId}?fields=adcreatives{{name}},campaigns{{name}},adsets{{name, campaign_id}}&access_token={accessToken}";
+                var url = $"https://graph.facebook.com/v18.0/act_{adAccountId}?fields=adcreatives{{ name}},campaigns{{name}},adsets{{name, campaign_id}}&access_token={accessToken}";
 
                 var response = await httpClient.GetAsync(url);
 
@@ -632,7 +634,6 @@ namespace backend.ServiceFiles
                     {
                         Id = item.GetProperty("id").GetString(),
                         Name = item.GetProperty("name").GetString(),
-                        CampaignId = item.GetProperty("campaign_id").GetString()
                     });
                 }
 
@@ -643,15 +644,16 @@ namespace backend.ServiceFiles
                     adSetData.Add(new
                     {
                         Id = item.GetProperty("id").GetString(),
-                        Name = item.GetProperty("name").GetString()
+                        Name = item.GetProperty("name").GetString(),
+                        CampaignId = item.GetProperty("campaign_id").GetString()
                     });
                 }
 
                 var responseDto = new
                 {
-                    campaignData = campaignData,
-                    adSetData = adSetData,
-                    adCreativeData = adCreativeData
+                    CampaignData = campaignData,
+                    AdSetData = adSetData,
+                    AdCreativeData = adCreativeData
                 };
 
                 return new ResponseVM<object>("200", "Ads scheduled", responseDto);

@@ -38,7 +38,7 @@ namespace backend.Controllers
             }
         }
         [HttpGet("GetBudgetAmountFacebook")]
-        public async Task<IActionResult> GetTargetingCategory([FromQuery] string accessToken, [FromQuery] string adAccountId)
+        public async Task<IActionResult> GetBudgetAmountFacebook([FromQuery] string accessToken, [FromQuery] string adAccountId)
         {
             try
             {

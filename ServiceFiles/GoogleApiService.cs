@@ -410,7 +410,8 @@ namespace backend.ServiceFiles
                                     //Budget = googleAdsRow.Campaign.CampaignBudget,
                                     StartDate = googleAdsRow.Campaign.StartDate,
                                     EndDate = googleAdsRow.Campaign.EndDate,
-                                    Budget = await GetCampaignBudget(customerId.ToString(), Constants.GoogleCustomerId.ToString(),googleAdsRow.Campaign.CampaignBudget, refreshToken)
+                                    Budget = await GetCampaignBudget(customerId.ToString(), Constants.GoogleCustomerId.ToString(),googleAdsRow.Campaign.CampaignBudget, refreshToken),
+                                    Type = "Google"
 
                                 };
 
@@ -1208,7 +1209,8 @@ namespace backend.ServiceFiles
                             ad_group_ad.ad.responsive_search_ad.descriptions,
                             ad_group_ad.status
                         FROM ad_group_ad
-                        WHERE ad_group_ad.ad.type = RESPONSIVE_SEARCH_AD";
+                        WHERE ad_group_ad.ad.type = RESPONSIVE_SEARCH_AD
+                        AND ad_group_ad.status != 'REMOVED'";
 
             try
             {
