@@ -4,7 +4,7 @@ using backend.DTOs;
 using backend.Entities;
 using backend.ViewModels;
 
-namespace backend.Services.Interfaces
+namespace backend.ServiceFiles.Interfaces
 {
     public interface IFB
     {

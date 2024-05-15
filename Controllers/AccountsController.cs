@@ -1,6 +1,6 @@
 ﻿using backend.DTOs;
 using backend.Entities;
-using backend.Services.Interfaces;
+using backend.ServiceFiles.Interfaces;
 using backend.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -90,7 +90,7 @@ namespace backend.Controllers
             {
                 Console.WriteLine(ex.ToString());
                 _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
-                return StatusCode(503, "An error occurred while ForgetPassword Service.");
+                return StatusCode(503, "An error occurred while ForgetPassword ServiceFiles.");
             }
         }
 

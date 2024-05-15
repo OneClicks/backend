@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using backend.ViewModels;
-using backend.Services.Interfaces;
+using backend.ServiceFiles.Interfaces;
 using backend.Configurations;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
@@ -13,14 +13,14 @@ using backend.Entities;
 using backend.Repository.Interfaces;
 using MongoDB.Driver;
 using MongoDB.Bson.IO;
-using backend.Services.API.Services;
+using backend.ServiceFiles.API.Services;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Components.Forms;
 using System.Xml.Linq;
 
-namespace backend.Services
+namespace backend.ServiceFiles
 {
     public class FacebookApiService : IFB
     {
