@@ -1,4 +1,6 @@
-﻿using backend.ServiceFiles.Interfaces;
+﻿using backend.Entities;
+using backend.Repository.Interfaces;
+using backend.ServiceFiles.Interfaces;
 using backend.ViewModels;
 using System.Text.Json;
 
@@ -7,10 +9,12 @@ namespace backend.ServiceFiles
     public class InsightsService 
     {
         private readonly IFB _facebookService;
+        private readonly IGenericRepository<RecentActivity> _recentRepository;
 
-        public InsightsService(IFB facebookService)
+        public InsightsService(IFB facebookService, IGenericRepository<RecentActivity> recentRepository)
         {
             _facebookService = facebookService;
+            _recentRepository = recentRepository;
         }
         public async Task<ResponseVM<object>> GetBudgetAmountFacebook(string accessToken, string adAccountId)
         {
@@ -49,6 +53,33 @@ namespace backend.ServiceFiles
 
                 return new ResponseVM<object>("200", "Ads set data fetched", $"{totalAmount} RS");
             }
+        }
+
+        public async Task<ResponseVM<object>> GetRecentActivity()
+        {
+
+            var recent = await _recentRepository.FetchAll();
+            if (recent.Count == 0)
+            {
+                return new ResponseVM<object>("404", "NO recent activities");
+
+            }
+
+            return new ResponseVM<object>("200", "Recent activities fetched", recent);
+            
+        }
+        public async Task<ResponseVM<object>> AddRecentActivity()
+        {
+
+            var temp = new RecentActivity
+            {
+                Activity = "New Campaign Added: Facebook",
+                DateTime = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd hh:mm:ss tt")
+            };
+            await _recentRepository.Create(temp);
+
+            return new ResponseVM<object>("200", "created", temp);
+
         }
     }
 }
