@@ -6,6 +6,7 @@ using backend.ServiceFiles;
 using backend.Extensions;
 using backend.Configurations;
 using Microsoft.Extensions.Configuration;
+using Google.Ads.GoogleAds;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAccountService, AccountsService>();
 builder.Services.AddScoped<IFB, FacebookApiService>();
 builder.Services.AddScoped<IGoogleApiService, GoogleApiService>();
+builder.Services.AddScoped<InsightsService>();
 
 builder.Services.AddScoped<IEmailService, EmailService>();
 //cors

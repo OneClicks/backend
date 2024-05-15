@@ -3,7 +3,7 @@ using MongoDB.Bson;
 
 namespace backend.Entities
 {
-    public class Ad
+    public class Ads
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]

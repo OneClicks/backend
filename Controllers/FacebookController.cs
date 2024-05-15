@@ -15,12 +15,12 @@ namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CampaignsController : ControllerBase
+    public class FacebookController : ControllerBase
     {
         private readonly IFB _facebookService;
-        private readonly ILogger<CampaignsController> _logger;
+        private readonly ILogger<FacebookController> _logger;
 
-        public CampaignsController(IFB facebookService, ILogger<CampaignsController> logger)
+        public FacebookController(IFB facebookService, ILogger<FacebookController> logger)
         {
             _facebookService = facebookService;
             _logger = logger;
