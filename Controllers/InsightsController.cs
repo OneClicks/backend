@@ -19,7 +19,24 @@ namespace backend.Controllers
             _insightsService = insightsService;
         }
 
+        [HttpPost("test")]
+        //[Authorize(Policy = "ApiKeyPolicy")]
+        public async Task<ActionResult<ResponseVM<Users>>> Test(CampaignDto campaign)
+        {
+            try
+            {
+                _insightsService.AddRecentActivity();
 
+                return Ok();
+              
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString().Substring(0, 50));
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred while creating campaigns.");
+            }
+        }
         [HttpGet("GetBudgetAmountFacebook")]
         public async Task<IActionResult> GetTargetingCategory([FromQuery] string accessToken, [FromQuery] string adAccountId)
         {
@@ -38,11 +55,11 @@ namespace backend.Controllers
         }
 
         [HttpGet("GetRecentActivity")]
-        public async Task<IActionResult> GetRecentActivity([FromQuery] string accessToken, [FromQuery] string adAccountId)
+        public async Task<IActionResult> GetRecentActivity()
         {
             try
             {
-                var data = await _insightsService.GetBudgetAmountFacebook(accessToken, adAccountId);
+                var data = await _insightsService.GetRecentActivity();
                 _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
             }

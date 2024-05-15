@@ -15,17 +15,17 @@ using Google.Ads.GoogleAds;
 using Google.Api;
 using backend.Helpers;
 using backend.Entities;
+using backend.Repository.Interfaces;
 namespace backend.ServiceFiles
 {
     public class GoogleApiService : IGoogleApiService
     {
-        private readonly HttpClient _httpClient;
-        private const string CUSTOMIZER_ATTRIBUTE_NAME = "Price";
+        private readonly IGenericRepository<RecentActivity> _recentRepository;
 
 
-        public GoogleApiService(HttpClient httpClient)
+        public GoogleApiService( IGenericRepository<RecentActivity> recentRepository)
         {
-            _httpClient = httpClient;
+            _recentRepository = recentRepository;
         }
         #region ACCOUNTS 
         public async Task<ResponseVM<object>> GetAccessibleAccounts(string refreshToken)
@@ -345,6 +345,8 @@ namespace backend.ServiceFiles
                     Activity = "New Customer Created: Google",
                     DateTime = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd hh:mm:ss tt")
                 };
+                await _recentRepository.Create(temp);
+
                 // Display the result.
                 Console.WriteLine($"Created a customer with resource name " +
                     $"'{response.ResourceName}' under the manager account with customer " +
@@ -597,6 +599,8 @@ namespace backend.ServiceFiles
                         Activity = "New Camaign added : Google",
                         DateTime = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd hh:mm:ss tt")
                     };
+                    await _recentRepository.Create(temp);
+
                     foreach (MutateCampaignResult newCampaign in retVal.Results)
                     {
                         Console.WriteLine("Campaign with resource ID = '{0}' was added.",
@@ -674,7 +678,7 @@ namespace backend.ServiceFiles
             }
         }
 
-        private static async Task<string> CreateBudget( GoogleCampaignDto dto)
+        private  async Task<string> CreateBudget( GoogleCampaignDto dto)
         {
             GoogleAdsConfig config = new GoogleAdsConfig()
             {
@@ -713,6 +717,8 @@ namespace backend.ServiceFiles
                     Activity = "New Budget Created for Campaign: Google",
                     DateTime = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd hh:mm:ss tt")
                 };
+                 await _recentRepository.Create(temp);
+
                 return response.Results[0].ResourceName;
 
             }
@@ -768,6 +774,8 @@ namespace backend.ServiceFiles
                     Activity = "New AdGroup added : Google",
                     DateTime = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd hh:mm:ss tt")
                 };
+                await _recentRepository.Create(temp);
+
                 foreach (MutateAdGroupResult newAdGroup in response.Results)
                 {
                     Console.WriteLine("Ads group with resource name '{0}' was created.",
@@ -1014,6 +1022,8 @@ namespace backend.ServiceFiles
                     Activity = "New Ad Created : Google",
                     DateTime = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd hh:mm:ss tt")
                 };
+                await _recentRepository.Create(temp);
+
                 string resourceName = response.Results[0].ResourceName;
                 return new ResponseVM<string>("200", "Successfully created responsive search ad with resource name: ", resourceName);
             }
