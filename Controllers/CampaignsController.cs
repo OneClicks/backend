@@ -1,16 +1,15 @@
 ﻿using backend.DTOs;
 using backend.Entities;
-using backend.Service;
-using backend.Service.Interfaces;
+using backend.Services;
+using backend.Services.Interfaces;
 using backend.ViewModels;
-using Google.Apis.Auth.OAuth2.Requests;
-using Google.Apis.Auth.OAuth2;
-using Google.Rpc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Reflection.Metadata;
-using backend.Configurations;
-using System.Text.Json;
+using MongoDB.Driver;
+using System.Globalization;
+using static Org.BouncyCastle.Bcpg.Attr.ImageAttrib;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace backend.Controllers
 {
@@ -20,19 +19,15 @@ namespace backend.Controllers
     {
         private readonly IFB _facebookService;
         private readonly ILogger<CampaignsController> _logger;
-        private readonly HttpClient _httpClientFactory;
-        private readonly IGoogleApiService googleApiService;
 
-        public CampaignsController(IFB facebookService, ILogger<CampaignsController> logger, HttpClient httpClient, IGoogleApiService googleApiService)
+        public CampaignsController(IFB facebookService, ILogger<CampaignsController> logger)
         {
             _facebookService = facebookService;
             _logger = logger;
-            _httpClientFactory = httpClient;
-            this.googleApiService = googleApiService;
         }
-        [HttpGet("test")]
+        [HttpPost("test")]
         //[Authorize(Policy = "ApiKeyPolicy")]
-        public async Task<ActionResult<ResponseVM<Users>>> Test(string code)
+        public async Task<ActionResult<ResponseVM<Users>>> Test(CampaignDto campaign)
         {
             try
             {
@@ -67,7 +62,7 @@ namespace backend.Controllers
                     //var data = await _facebookService.GetCities("Un", "EAAKbj1ZAaEcgBOxoDtv1ZABZACPu4bQsi8u5OfypNAkCIieC9gp6VQQZAKqL1MeBgDZBhheEjsMnocD1LsD5kheGI4dZC9mDoYHbL9Fkwbp2K7HvEwFZB0nJn62O2EOwjCsGFHsH3JAjUVsVKCKPZAMZAM9sZA6MV8a9QbwlXLa5ulTvGcoX7GFiaW31QwjEW4bjEg1mSmZC63e2z8bo6GImQZDZD");
                     //_logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                     //return Ok(data);
-                }
+             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString().Substring(0, 50));
@@ -96,11 +91,11 @@ namespace backend.Controllers
         }
 
         [HttpGet("GetAllCampaigns")]
-        public async Task<ActionResult<ResponseVM<Campaigns>>> GetAllCampaigns()
+        public async Task<IActionResult> GetAllCampaigns([FromQuery] string accessToken, [FromQuery] string adAccountId)
         {
             try
             {
-                var data = await _facebookService.GetAllCampaigns(); 
+                var data = await _facebookService.GetCampaignData(accessToken,adAccountId); 
                 _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
             }
@@ -129,19 +124,82 @@ namespace backend.Controllers
             }
         }
 
-        [HttpPost("CreateAd")]
-        //[Authorize(Policy = "ApiKeyPolicy")]
-        public async Task<ActionResult<ResponseVM<Adset>>> CreateAd(AdDto ad)
+/*        [HttpGet("GetAllAdsets")]
+        public async Task<ActionResult<ResponseVM<Adset>>> GetAllAdsets()
         {
             try
             {
-                var accessToken = "EAAKbj1ZAaEcgBOykHcNeUAQcIwzGfShwTFzuvWSqIIGdHj61MKStA7qPQcPZCpFBgrUZAN4IJUgktKh1L7ILFWWEMUnZBr6OpUgSpMfZAEbKKTsK4MSJJ0QDWEp9fpt6u0tQaoEZBwNhmxpRgkvNdQjxBepjMs87LEAzUH28ZBZAXxHPlQogcLZARHTlgoeGBlHSuonlxCFzypqDmqlloZApEZD";
-                var adAccountId = "1295877481040276";
-                var adsetId = "120207945721040113";
-                var adsetName = "My Ad Set for aftercred";
-                var creativeId = "120207945749960113";
+                var data = await _facebookService.GetAllAdsets();
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred fetching all categories");
+            }
+        }*/
 
-                var data = await _facebookService.ScheduleDelivery(accessToken, adAccountId, adsetId, adsetName, creativeId);
+        [HttpPost("CreateAdcreative")]
+        //[Authorize(Policy = "ApiKeyPolicy")]
+        public async Task<ActionResult<ResponseVM<AdCreative>>> CreateAdCreative(AdCreativeDto creative)
+        {
+            try
+            {
+                var data = await _facebookService.CreateAdCreative(creative);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString().Substring(0, 50));
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred while creating adcreative.");
+            }
+        }
+
+        [HttpPut("CreateAdImageHash/{adAccountId}")]
+        //[Authorize(Policy = "ApiKeyPolicy")]
+        public async Task<IActionResult> CreateAdImageHash([FromQuery] string accessToken, [FromForm] IFormFile imageFile, string adAccountId)
+        {
+            try
+            {
+                var data = await _facebookService.UploadFile(accessToken, imageFile, adAccountId);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString().Substring(0, 50));
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred while creating image hash.");
+            }
+        }
+        [HttpGet("GetAllAdcreatives")]
+        public async Task<ActionResult<ResponseVM<AdCreative>>> GetAllAdcreatives()
+        {
+            try
+            {
+                var data = await _facebookService.GetAllAdcreatives();
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred fetching all ad creatives");
+            }
+        }
+
+        [HttpPost("ScheduleAd")]
+        //[Authorize(Policy = "ApiKeyPolicy")]
+        public async Task<IActionResult> CreateAd(AdDto ad)
+        {
+            try
+            {
+                var data = await _facebookService.ScheduleDelivery(ad);
                 _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
             }
@@ -150,6 +208,93 @@ namespace backend.Controllers
                 Console.WriteLine(ex.ToString().Substring(0, 50));
                 _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
                 return StatusCode(503, "An error occurred while creating ad.");
+            }
+        }
+
+        [HttpGet("GetInterests")]
+        //[Authorize(Policy = "ApiKeyPolicy")]
+        public async Task<IActionResult> GetInterests([FromQuery] string accessToken, [FromQuery] string interests)
+        {
+            try
+            {
+                var data = await _facebookService.GetInterests(accessToken, interests);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred while getting interests");
+            }
+        }
+
+        //[Authorize(Policy = "ApiKeyPolicy")]
+        [HttpGet("GetTargetingCategory")]
+        public async Task<IActionResult> GetTargetingCategory([FromQuery] string accessToken, [FromQuery] string targetType)
+        {
+            try
+            {
+                var data = await _facebookService.SearchAdTargetingCategories(accessToken, targetType);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred while getting interests");
+            }
+        }
+        //[Authorize(Policy = "ApiKeyPolicy")]
+        [HttpGet("GetCities")]
+        public async Task<IActionResult> GetCities([FromQuery] string accessToken, [FromQuery] string city)
+        {
+            try
+            {
+                var data = await _facebookService.GetCities(accessToken, city);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred while getting interests");
+            }
+        }
+
+        [HttpGet("GetAllAdsPayload")]
+        public async Task<IActionResult> GetAllAdsPayload([FromQuery] string accessToken, [FromQuery] string adAccountId)
+        {
+            try
+            {
+                var data = await _facebookService.GetPayloadForAd(accessToken, adAccountId);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred while getting ads payload");
+            }
+        }
+
+        [HttpGet("GetAllAdsets")]
+        public async Task<IActionResult> GetAllAdsets([FromQuery] string accessToken, [FromQuery] string adAccountId)
+        {
+            try
+            {
+                var data = await _facebookService.GetAdSetData(accessToken, adAccountId);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred while getting ads payload");
             }
         }
     }
