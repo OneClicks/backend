@@ -16,6 +16,6 @@ namespace backend.Service.Interfaces
         Task<ResponseVM<string>> CreateResponsiveSearchAdWithCustomization(AdGroupDto adGroupObj, string adGroupResourceName);
         Task<ResponseVM<string>> AddKeywords(AdGroupDto adGroupObj, string adGroupResourceName);
         Task<ResponseVM<string>> AddGeoTargeting(AdGroupDto adGroupObj );
-        Task<ResponseVM<List<object>>> GetAllResponseAds(string refreshToken, long customerId);
+        Task<ResponseVM<List<object>>> GetAllResponseAds(string refreshToken, long customerId, long managerID);
     }
 }

@@ -142,11 +142,11 @@ namespace backend.Controllers
         }
 
         [HttpGet("GetAllAds")]
-        public async Task<IActionResult> GetAllAds([FromQuery] string refreshToken, [FromQuery] long customerId)
+        public async Task<IActionResult> GetAllAds([FromQuery] string refreshToken, [FromQuery] long customerId , [FromQuery] long managerID)
         {
             try
             {
-                var data = await _googleApiService.GetAllResponseAds(refreshToken, customerId);
+                var data = await _googleApiService.GetAllResponseAds(refreshToken, customerId, managerID);
                 //_logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
             }
