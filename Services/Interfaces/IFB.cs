@@ -1,19 +1,31 @@
-﻿using backend.DTOs;
+﻿
+
+using backend.DTOs;
 using backend.Entities;
 using backend.ViewModels;
-using Microsoft.AspNetCore.Mvc;
-using static backend.Service.FacebookApiService;
 
-namespace backend.Service.Interfaces
+namespace backend.Services.Interfaces
 {
     public interface IFB
     {
         Task<ResponseVM<HttpResponseMessage>> CreateCampaign(CampaignDto campaign);
         Task<ResponseVM<AdaccountsDto>> GetAdAccountsData(string accessToken);
-        Task<ResponseVM<string>> CreateAdSet(AdsetDto adset);
-        Task<ResponseVM<string>> ScheduleDelivery(string accessToken, string adAccountId, string adsetId, string adsetName, string creativeId);
+        Task<ResponseVM<HttpResponseMessage>> CreateAdSet(AdsetDto adset);
+        Task<ResponseVM<List<Adset>>> GetAllAdsets();
+        Task<ResponseVM<string>> ScheduleDelivery(AdDto ad);
         Task<ResponseVM<List<Campaigns>>> GetAllCampaigns();
-        Task<ResponseVM<string>> GetCities(string query, string accessToken);
-        Task<ResponseVM<List<AdTargetingCategory>>> SearchAdTargetingCategories(string accessToken, string apiVersion, string targetType);
+        Task<ResponseVM<object>> GetPayloadForAd(string accessToken, string adAccountId);
+        Task<ResponseVM<AdCreative>> CreateAdCreative(AdCreativeDto creative);
+        Task<ResponseVM<string>> UploadFile(string accessToken, IFormFile imageFile, string adAccountId);
+        Task<ResponseVM<List<LocationData>>> GetCities(string accessToken, string query);
+        Task<ResponseVM<List<Interest>>> GetInterests(string accessToken, string query);
+        Task<ResponseVM<List<AdCreative>>> GetAllAdcreatives();
+        Task<ResponseVM<List<AdTargetingCategory>>> SearchAdTargetingCategories(string accessToken, string targetType);
+        Task<ResponseVM<string>> GetCampaignInsights(string campaignId, string accessToken);
+        Task<ResponseVM<string>> GetAdAccountInsights(string adAccountId, string accessToken);
+
+        Task<ResponseVM<object>> GetAdSetData(string accessToken, string adAccountId);
+        Task<ResponseVM<object>> GetCampaignData(string accessToken, string adAccountId);
+
     }
 }

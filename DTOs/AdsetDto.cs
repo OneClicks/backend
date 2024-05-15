@@ -11,8 +11,10 @@
         public string CampaignId { get; set; }
         public GeoLocations Geolocations { get; set; }
         public List<Interest> Interests { get; set; }
+        public List<Interest> Industries { get; set; }
         public string StartTime { get; set; }
         public string Status { get; set; }
         public string AccessToken { get; set; }
+        public string Type { get; set; }
     }
 }
