@@ -22,6 +22,7 @@ namespace backend.ServiceFiles.Interfaces
         Task<ResponseVM<List<AdCreative>>> GetAllAdcreatives();
         Task<ResponseVM<List<AdTargetingCategory>>> SearchAdTargetingCategories(string accessToken, string targetType);
         Task<ResponseVM<string>> GetCampaignInsights(string campaignId, string accessToken);
+        Task<ResponseVM<object>> GetAllAdsData(string accessToken, string adAccountId);
         Task<ResponseVM<string>> GetAdAccountInsights(string adAccountId, string accessToken);
 
         Task<ResponseVM<object>> GetAdSetData(string accessToken, string adAccountId);

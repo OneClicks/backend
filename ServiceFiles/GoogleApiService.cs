@@ -1193,7 +1193,6 @@ namespace backend.ServiceFiles
                 OAuth2ClientId = Constants.GoogleClientId,
                 OAuth2ClientSecret = Constants.GoogleClientSecret,
                 OAuth2RefreshToken = refreshToken,
-                //"1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
                 LoginCustomerId = managerId.ToString()
             };
 
@@ -1202,6 +1201,7 @@ namespace backend.ServiceFiles
           
             string query = @"SELECT
                             ad_group.id,
+                            ad_group_ad.resource_name,
                             ad_group.name,
                             ad_group_ad.ad.name,
                             ad_group_ad.ad.id,
@@ -1225,6 +1225,7 @@ namespace backend.ServiceFiles
 
                                 AdId = googleAdsRow.AdGroupAd.Ad.Id,
                                 AdGroupName = googleAdsRow.AdGroup.Name,
+                                AdResourceName = googleAdsRow.AdGroupAd.ResourceName,
                                 AdName = googleAdsRow.AdGroupAd.Ad.Name,
                                 Headlines = googleAdsRow.AdGroupAd.Ad.ResponsiveSearchAd.Headlines,
                                 Descriptions = googleAdsRow.AdGroupAd.Ad.ResponsiveSearchAd.Descriptions,

@@ -123,21 +123,27 @@ namespace backend.ServiceFiles
                 {
                     throw new Exception($"Failed to fetch campaign data. Status code: {response.StatusCode}");
                 }
-
                 var responseContent = await response.Content.ReadAsStringAsync();
                 using JsonDocument document = JsonDocument.Parse(responseContent);
 
                 var campaigns = document.RootElement.GetProperty("campaigns").GetProperty("data");
 
-                var campaignData = new List<object>();
+                var campaignData = new List<object>(); 
+                var adSetDataResponse = await GetAdSetData(accessToken, adAccountId);
+                var adSetData = adSetDataResponse.ResponseData;
+
                 foreach (var campaign in campaigns.EnumerateArray())
                 {
+                    var campaignId = campaign.GetProperty("id").GetString();
+                    //var adsetsForCampaign = adSetData.Where(x => x.CampaignId == campaignId);
+                    //var totalBudget = adsetsForCampaign.Sum(x => x.DailyBudget);
                     campaignData.Add(new
                     {
                         CampaignName = campaign.GetProperty("name").GetString(),
-                        CampaignId = campaign.GetProperty("id").GetString(),
+                        CampaignId = campaignId,
                         Objective = campaign.GetProperty("objective").GetString(),
                         Status = campaign.GetProperty("status").GetString(),
+                        //Budget = totalBudget,
                         Type = "Facebook"
                     });
                 }
@@ -210,23 +216,23 @@ namespace backend.ServiceFiles
         #endregion
 
         #region 2.get Targeting Spec City , Interest 
-/*        public string CreateTargetingSpec(string countriesResponse, string interestsResponse)
-        {
-            // Assume we have extracted the country code from the +countriesResponse
-            var countries = new List<string> { "US" };
+        /*        public string CreateTargetingSpec(string countriesResponse, string interestsResponse)
+                {
+                    // Assume we have extracted the country code from the +countriesResponse
+                    var countries = new List<string> { "US" };
 
-            // Parse the interestsResponse to get the interest ID
-            var interestsData = JsonSerializer.Deserialize<dynamic>(interestsResponse);
-            var interests = new List<Interest> { new Interest { id = interestsData.id, name = interestsData.name } };
+                    // Parse the interestsResponse to get the interest ID
+                    var interestsData = JsonSerializer.Deserialize<dynamic>(interestsResponse);
+                    var interests = new List<Interest> { new Interest { id = interestsData.id, name = interestsData.name } };
 
-            var targetingSpec = new Targeting
-            {
-                geo_locations = new GeoLocations { countries = countries },
-                interests = interests
-            };
+                    var targetingSpec = new Targeting
+                    {
+                        geo_locations = new GeoLocations { countries = countries },
+                        interests = interests
+                    };
 
-            return JsonSerializer.Serialize(targetingSpec);
-        }*/
+                    return JsonSerializer.Serialize(targetingSpec);
+                }*/
 
         public async Task<ResponseVM<List<LocationData>>> GetCities(string accessToken, string query )
         {
@@ -710,6 +716,92 @@ namespace backend.ServiceFiles
                 return new ResponseVM<string>("200", "Ads scheduled", responseContent);
                 //return new ResponseVM<string>("200", "Successfully created adcreative", responseAd.ToString());
             }
+        }
+
+        public async Task<ResponseVM<object>> GetAllAdsData(string accessToken, string adAccountId)
+        {
+            using (var httpClient = new HttpClient())
+            {
+                var url = $"https://graph.facebook.com/v18.0/act_{adAccountId}?fields=ads{{name,adset,creative,status,adset_id,campaign,account_id}},adcreatives{{name}},campaigns{{name}},adsets{{name}}&access_token={accessToken}";
+
+                var response = await httpClient.GetAsync(url);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception($"Failed to fetch user data. Status code: {response.StatusCode}");
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                using JsonDocument document = JsonDocument.Parse(responseContent);
+
+                var adCreativeData = new List<object>();
+                var adCreativeArray = document.RootElement.GetProperty("adcreatives").GetProperty("data");
+                foreach (var item in adCreativeArray.EnumerateArray())
+                {
+                    adCreativeData.Add(new
+                    {
+                        Id = item.GetProperty("id").GetString(),
+                        Name = item.GetProperty("name").GetString()
+                    });
+                }
+
+                var campaignData = new List<object>();
+                var campaignArray = document.RootElement.GetProperty("campaigns").GetProperty("data");
+                foreach (var item in campaignArray.EnumerateArray())
+                {
+                    campaignData.Add(new
+                    {
+                        Id = item.GetProperty("id").GetString(),
+                        Name = item.GetProperty("name").GetString()
+                    });
+                }
+
+                var adSetData = new List<object>();
+                var adSetArray = document.RootElement.GetProperty("adsets").GetProperty("data");
+                foreach (var item in adSetArray.EnumerateArray())
+                {
+                    adSetData.Add(new
+                    {
+                        Id = item.GetProperty("id").GetString(),
+                        Name = item.GetProperty("name").GetString()
+                    });
+                }
+                var adsData = new List<object>();
+                var adsArray = document.RootElement.GetProperty("ads").GetProperty("data");
+                foreach (var item in adsArray.EnumerateArray())
+                {
+                    var adsetId = item.GetProperty("adset").GetProperty("id").GetString();
+                    var creativeId = item.GetProperty("creative").GetProperty("id").GetString();
+                    var campaignId = item.GetProperty("campaign").GetProperty("id").GetString();
+
+                    var adsetName = GetEntityName(adSetData, adsetId);
+                    var creativeName = GetEntityName(adCreativeData, creativeId);
+                    var campaignName = GetEntityName(campaignData, campaignId);
+
+                    adsData.Add(new
+                    {
+                        Id = item.GetProperty("id").GetString(),
+                        Name = item.GetProperty("name").GetString(),
+                        AdsetName = adsetName,
+                        CreativeName = creativeName,
+                        CampaignName = campaignName,
+                        Status = item.GetProperty("status").GetString(),
+                        AccountId = item.GetProperty("account_id").GetString()
+                    });
+                }
+                
+
+                return new ResponseVM<object>("200", "Successfully fetched Ads", adsData);
+
+            }
+
+        }
+
+        // Function to get entity name based on id
+        string GetEntityName(List<object> entityData, string id)
+        {
+            var entity = entityData.FirstOrDefault(e => ((dynamic)e).Id == id);
+            return entity != null ? ((dynamic)entity).Name : "Unknown";
         }
         #endregion
 
