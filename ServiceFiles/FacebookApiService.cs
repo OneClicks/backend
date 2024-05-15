@@ -786,7 +786,8 @@ namespace backend.ServiceFiles
                         CreativeName = creativeName,
                         CampaignName = campaignName,
                         Status = item.GetProperty("status").GetString(),
-                        AccountId = item.GetProperty("account_id").GetString()
+                        AccountId = item.GetProperty("account_id").GetString(),
+                        Type = "Facebook"
                     });
                 }
                 

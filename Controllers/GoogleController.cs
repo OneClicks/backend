@@ -89,6 +89,25 @@ namespace backend.Controllers
             }
         }
 
+        [HttpPost("CreateClientAccount")]
+        public async Task<IActionResult> CreateClientAccount(ClientAccountDto dto)
+        {
+            try
+            {
+                string idPart = dto.CustomerId.Split('/')[1]; // Split the string by '/' and take the second part
+                long id = long.Parse(idPart); // Parse the ID part as a long
+                var data = await _googleApiService.CreateCustomer(dto.RefreshToken, id);
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred fetching all categories");
+            }
+        }
+
         [HttpPost("CreateCampaign")]
         public async Task<IActionResult> CreateCampaign(GoogleCampaignDto campaignDto)
         {
