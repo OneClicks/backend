@@ -106,6 +106,7 @@ namespace backend.Controllers
                 return StatusCode(503, "An error occurred fetching all categories");
             }
         }
+
         [HttpPost("CreateAdset")]
         //[Authorize(Policy = "ApiKeyPolicy")]
         public async Task<ActionResult<ResponseVM<Adset>>> CreateAdset(AdsetDto adset)
@@ -124,7 +125,7 @@ namespace backend.Controllers
             }
         }
 
-/*        [HttpGet("GetAllAdsets")]
+        /*        [HttpGet("GetAllAdsets")]
         public async Task<ActionResult<ResponseVM<Adset>>> GetAllAdsets()
         {
             try
@@ -182,6 +183,22 @@ namespace backend.Controllers
             try
             {
                 var data = await _facebookService.GetAllAdcreatives();
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred fetching all ad creatives");
+            }
+        }
+        [HttpGet("GetAllAdsData")]
+        public async Task<ActionResult<ResponseVM<AdCreative>>> GetAllAdsData([FromQuery] string accessToken, [FromQuery] string adAccountId)
+        {
+            try
+            {
+                var data = await _facebookService.GetAllAdsData(accessToken,adAccountId);
                 _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
             }
