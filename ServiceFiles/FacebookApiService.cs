@@ -394,13 +394,14 @@ namespace backend.ServiceFiles
             {
                 var response = await httpClient.PostAsync(url, formData);
                 var responseContent = await response.Content.ReadAsStringAsync();
-                using JsonDocument document = JsonDocument.Parse(responseContent);
-
-                var jsonResponse = document.RootElement.GetProperty("id").GetString();
                 if (!response.IsSuccessStatusCode)
                 {
                     throw new Exception($"Failed to create ad set. Status code: {response.StatusCode}");
                 }
+                using JsonDocument document = JsonDocument.Parse(responseContent);
+
+                var jsonResponse = document.RootElement.GetProperty("id").GetString();
+               
                 var adsetObj = new Adset
                 {
                     DailyBudget = adset.DailyBudget.ToString(),
@@ -498,7 +499,7 @@ namespace backend.ServiceFiles
         public async Task<ResponseVM<AdCreative>> CreateAdCreative(AdCreativeDto creative)
         {
             var url = $"https://graph.facebook.com/v19.0/act_{creative.AdAccountId}/adcreatives";
-            var msg = "try it out";
+            
 
             var requestBody = new
             {
@@ -509,7 +510,7 @@ namespace backend.ServiceFiles
                     link_data = new
                     {
                         link = $"https://facebook.com/{creative.PageId}",
-                        message = msg,
+                        message = creative.Message,
                         image_hash = creative.ImageHash
                     }
                 },
@@ -562,7 +563,6 @@ namespace backend.ServiceFiles
         }
 
         public async Task<ResponseVM<string>> UploadFile(string accessToken, IFormFile imageFile, string adAccountId)
-        //(IFormFile imageFile, string accessToken, string adAccountId)
         {
             using (var httpClient = new HttpClient())
             {
