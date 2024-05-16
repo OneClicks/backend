@@ -369,7 +369,7 @@ namespace backend.ServiceFiles
         #endregion
 
         #region CAMPAIGNS
-        public async Task<List<object>> GetAllCampaigns(string refreshToken, long customerId)
+        public async Task<ResponseVM<List<object>>> GetAllCampaigns(string refreshToken, long customerId)
         {
             GoogleAdsConfig config = new GoogleAdsConfig()
             {
@@ -423,7 +423,7 @@ namespace backend.ServiceFiles
                         }   
                     }
                 );
-                return campaignDetails;
+                return new ResponseVM<List<object>>("200", "Successfully fetched google campaigns", campaignDetails);
             }
             catch (GoogleAdsException e)
             {
@@ -626,7 +626,7 @@ namespace backend.ServiceFiles
                 throw new Exception($"Google Ads API request failed: {e.Message}", e);
             }
         }
-        private async Task<string> GetCampaignBudget(string customerId, string managerId,string campaignId, string refreshToken)
+        public async Task<string> GetCampaignBudget(string customerId, string managerId,string campaignId, string refreshToken)
         {
             GoogleAdsConfig config = new GoogleAdsConfig()
             {
@@ -657,8 +657,8 @@ namespace backend.ServiceFiles
                         {
                             var budget = new
                             {
-                                AmountMicros = googleAdsRow.CampaignBudget.AmountMicros
-                            };
+                                AmountMicros = googleAdsRow.CampaignBudget.AmountMicros  / 1_000_000
+                        };
 
                             budgetDetails.Add(budget.AmountMicros);
                         }
