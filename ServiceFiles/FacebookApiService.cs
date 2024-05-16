@@ -115,7 +115,7 @@ namespace backend.ServiceFiles
         {
             using (var httpClient = new HttpClient())
             {
-                var url = $"https://graph.facebook.com/v18.0/act_{adAccountId}?fields=campaigns{{name,id,objective,status}}&access_token={accessToken}";
+                var url = $"https://graph.facebook.com/v18.0/act_{adAccountId}?fields=campaigns{{name,id,objective,status}},adsets{{campaign_id, daily_budget}}&access_token={accessToken}";
 
                 var response = await httpClient.GetAsync(url);
 
@@ -127,23 +127,29 @@ namespace backend.ServiceFiles
                 using JsonDocument document = JsonDocument.Parse(responseContent);
 
                 var campaigns = document.RootElement.GetProperty("campaigns").GetProperty("data");
-
+                
                 var campaignData = new List<object>(); 
-                var adSetDataResponse = await GetAdSetData(accessToken, adAccountId);
-                var adSetData = adSetDataResponse.ResponseData;
-
+                var adSetDataResponse = document.RootElement.GetProperty("adsets").GetProperty("data").EnumerateArray();
+                var adSetData = adSetDataResponse.Select(adSet =>
+                {
+                    return new
+                    {
+                        CampaignId = adSet.GetProperty("campaign_id").GetString(),
+                        DailyBudget = int.Parse(adSet.GetProperty("daily_budget").GetString())
+                    };
+                }).ToList();
                 foreach (var campaign in campaigns.EnumerateArray())
                 {
                     var campaignId = campaign.GetProperty("id").GetString();
-                    //var adsetsForCampaign = adSetData.Where(x => x.CampaignId == campaignId);
-                    //var totalBudget = adsetsForCampaign.Sum(x => x.DailyBudget);
+                    var adsetsForCampaign = adSetData.Where(x => x.CampaignId == campaignId);
+                    var totalBudget = adsetsForCampaign.Sum(x => x.DailyBudget);
                     campaignData.Add(new
                     {
                         CampaignName = campaign.GetProperty("name").GetString(),
                         CampaignId = campaignId,
                         Objective = campaign.GetProperty("objective").GetString(),
                         Status = campaign.GetProperty("status").GetString(),
-                        //Budget = totalBudget,
+                        Budget = totalBudget,
                         Type = "Facebook"
                     });
                 }
@@ -670,7 +676,6 @@ namespace backend.ServiceFiles
         public async Task<ResponseVM<string>> ScheduleDelivery(AdDto ad)
         {
             var url = $"https://graph.facebook.com/v19.0/act_{ad.AdAccountId}/ads";
-            var status = "PAUSED";
 
             using (var httpClient = new HttpClient())
             {
@@ -682,10 +687,10 @@ namespace backend.ServiceFiles
                 var jsonCreative = JsonSerializer.Serialize(creative);
 
                 var formData = new MultipartFormDataContent();
-                formData.Add(new StringContent("My ad"), "name");
+                formData.Add(new StringContent(ad.AdName), "name");
                 formData.Add(new StringContent(ad.AdsetId), "adset_id");
                 formData.Add(new StringContent(jsonCreative), "creative");
-                formData.Add(new StringContent(status), "status");
+                formData.Add(new StringContent(ad.Status), "status");
                 formData.Add(new StringContent(ad.AccessToken), "access_token");
 
                 var response = await httpClient.PostAsync(url, formData);

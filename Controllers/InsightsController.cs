@@ -53,6 +53,22 @@ namespace backend.Controllers
                 return StatusCode(503, "An error occurred while getting interests");
             }
         }
+        [HttpGet("GetBudgetAmountGoogle")]
+        public async Task<IActionResult> GetBudgetAmountGoogle([FromQuery] string accessToken, [FromQuery] string customer, [FromQuery] string manager)
+        {
+            try
+            {
+                var data = await _insightsService.GetBudgetAmountGoogle(accessToken,customer, manager );
+                _logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                _logger.LogError($"Error Code: {503}\nError Message: {ex.ToString().Substring(0, 50)}");
+                return StatusCode(503, "An error occurred while getting interests");
+            }
+        }
 
         [HttpGet("GetRecentActivity")]
         public async Task<IActionResult> GetRecentActivity()
