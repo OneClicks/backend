@@ -126,11 +126,11 @@ namespace backend.Controllers
         }
 
         [HttpGet("GetAllCampaigns")]
-        public async Task<IActionResult> GetAllCampaigns([FromQuery] string refreshToken, [FromQuery] long customerId)
+        public async Task<IActionResult> GetAllCampaigns([FromQuery] string refreshToken, [FromQuery] long customerId, [FromQuery] long managerId)
         {
             try
             {
-                var data = await _googleApiService.GetAllCampaigns(refreshToken, customerId);
+                var data = await _googleApiService.GetAllCampaigns(refreshToken, customerId, managerId);
                 //_logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
             }
@@ -161,11 +161,11 @@ namespace backend.Controllers
         }
 
         [HttpGet("GetAllAds")]
-        public async Task<IActionResult> GetAllAds([FromQuery] string refreshToken, [FromQuery] long customerId , [FromQuery] long managerID)
+        public async Task<IActionResult> GetAllAds([FromQuery] string refreshToken, [FromQuery] long customerId , [FromQuery] long managerId)
         {
             try
             {
-                var data = await _googleApiService.GetAllResponseAds(refreshToken, customerId, managerID);
+                var data = await _googleApiService.GetAllResponseAds(refreshToken, customerId, managerId);
                 //_logger.LogInformation($"Response Code: {data.StatusCode}\nResponse Message: {data.Message}");
                 return Ok(data);
             }
@@ -177,6 +177,6 @@ namespace backend.Controllers
             }
         }
 
-        //}
+
     }
 }

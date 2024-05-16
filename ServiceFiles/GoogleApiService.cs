@@ -369,7 +369,7 @@ namespace backend.ServiceFiles
         #endregion
 
         #region CAMPAIGNS
-        public async Task<ResponseVM<List<object>>> GetAllCampaigns(string refreshToken, long customerId)
+        public async Task<ResponseVM<List<object>>> GetAllCampaigns(string refreshToken, long customerId, long managerId)
         {
             GoogleAdsConfig config = new GoogleAdsConfig()
             {
@@ -379,7 +379,7 @@ namespace backend.ServiceFiles
                 OAuth2ClientSecret = Constants.GoogleClientSecret,
                 OAuth2RefreshToken = refreshToken,
                 //"1//03v7pNMJs1LOPCgYIARAAGAMSNwF-L9IrDpDmkd1-ga1Y6jAaYrYtfqi6Re3xy31rPhoVQvl7OgAuTDgmkdxnsqHV7kCERZ-WuNc",
-                LoginCustomerId = Constants.GoogleCustomerId.ToString()
+                LoginCustomerId = managerId.ToString()
             };
 
             GoogleAdsClient client = new GoogleAdsClient(config);
@@ -411,7 +411,6 @@ namespace backend.ServiceFiles
                                     CampaignName = googleAdsRow.Campaign.Name,
                                     ManualCpc = googleAdsRow.Campaign.ManualCpc.EnhancedCpcEnabled ? "Enhanced Cpc Enabled" : "",
                                     Status = GoogleMapper.CampaignStatusToString(googleAdsRow.Campaign.Status),
-                                    //Budget = googleAdsRow.Campaign.CampaignBudget,
                                     StartDate = googleAdsRow.Campaign.StartDate,
                                     EndDate = googleAdsRow.Campaign.EndDate,
                                     Budget = await GetCampaignBudget(customerId.ToString(), Constants.GoogleCustomerId.ToString(),googleAdsRow.Campaign.CampaignBudget, refreshToken),
@@ -1132,7 +1131,7 @@ namespace backend.ServiceFiles
             GoogleAdsClient client = new GoogleAdsClient(config);
             GeoTargetConstantServiceClient geoTargetConstantService = client.GetService(Services.V16.GeoTargetConstantService);
 
-            var campaignName =await  GetAllCampaigns(adGroupObj.RefreshToken, adGroupObj.CustomerId);
+            var campaignName =await  GetAllCampaigns(adGroupObj.RefreshToken, adGroupObj.CustomerId, adGroupObj.ManagerId);
 
             SuggestGeoTargetConstantsRequest suggestGeoTargetConstantsRequest = new SuggestGeoTargetConstantsRequest()
             {
