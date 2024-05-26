@@ -1,6 +1,6 @@
-﻿using backend.Services.API.Services;
+﻿using backend.ServiceFiles.API.Services;
 
-namespace backend.Services.Interfaces
+namespace backend.ServiceFiles.Interfaces
 {
     public interface IEmailService
     {

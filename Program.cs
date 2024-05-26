@@ -1,11 +1,12 @@
 using backend.Repository.Interfaces;
 using backend.Repository;
-using backend.Services.API.Services;
-using backend.Services.Interfaces;
-using backend.Services;
+using backend.ServiceFiles.API.Services;
+using backend.ServiceFiles.Interfaces;
+using backend.ServiceFiles;
 using backend.Extensions;
 using backend.Configurations;
 using Microsoft.Extensions.Configuration;
+using Google.Ads.GoogleAds;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +27,8 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAccountService, AccountsService>();
 builder.Services.AddScoped<IFB, FacebookApiService>();
+builder.Services.AddScoped<IGoogleApiService, GoogleApiService>();
+builder.Services.AddScoped<InsightsService>();
 
 builder.Services.AddScoped<IEmailService, EmailService>();
 //cors

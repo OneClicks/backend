@@ -1,10 +1,10 @@
-﻿using backend.Services.Interfaces;
+﻿using backend.ServiceFiles.Interfaces;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace backend.Services
+namespace backend.ServiceFiles
 {
     public class TokenService : ITokenService
     {

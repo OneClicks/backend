@@ -1,4 +1,5 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
+using Org.BouncyCastle.Crmf;
 
 namespace backend.DTOs
 {
@@ -15,35 +16,43 @@ namespace backend.DTOs
         public string Platform { get; set; }
         public string LongLiveToken { get; set; }
     }
-    public class AdSetDto
-    {
-        public string AdsetName { get; set; }
-        public string OptimizationGoal { get; set; }
-        public string BillingEvent { get; set; }
-        public decimal BidAmount { get; set; }
-        public decimal DailyBudget { get; set; }
-        public string CampaignId { get; set; }
-        public List<string> GeoLocations { get; set; }
-        public List<string> Interests { get; set; }
-        public string StartTime { get; set; }
-        public string Status { get; set; }
-        public string AccessToken { get; set; }
-    }
 
     public class Interest
     {
-        public long Id { get; set; }
-        public string Name { get; set; }
+        public long id { get; set; }
+        public string name { get; set; }
     }
 
     public class Targeting
     {
-        public GeoLocations Geo_Locations { get; set; }
-        public List<Interest> Interests { get; set; }
+        public GeoLocations geo_locations { get; set; }
+        public List<Interest> interests { get; set; }
+        public List<Interest> industries { get; set; }
+    }
+    public class Cities
+    {
+        public string key { get; set; }
     }
 
     public class GeoLocations
     {
-        public List<string> Countries { get; set; }
+        public List<Cities> cities { get; set; }
     }
+    public class LocationData
+    {
+        public string Key { get; set; }
+        public string CityName { get; set; }
+        public string CountryName { get; set; }
+    }
+    public class AdTargetingCategory
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string Type { get; set; }
+
+
+        // Add other properties as needed
+    }
+
 }

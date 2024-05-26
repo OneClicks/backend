@@ -2,8 +2,8 @@
 using backend.Entities;
 using backend.Helpers;
 using backend.Repository.Interfaces;
-using backend.Services.API.Services;
-using backend.Services.Interfaces;
+using backend.ServiceFiles.API.Services;
+using backend.ServiceFiles.Interfaces;
 using backend.ViewModels;
 using MongoDB.Driver;
 using Org.BouncyCastle.Crypto.Macs;
@@ -11,7 +11,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 
-namespace backend.Services
+namespace backend.ServiceFiles
 {
     public class AccountsService : IAccountService
     {
