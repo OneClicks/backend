@@ -30,6 +30,8 @@ namespace backend.Entities
         [BsonElement("AccessToken")]  // Consider if needed for your specific use case
         public string AccessToken { get; set; }  // Optional from original class
 
+        [BsonElement("Type")]  
+        public string Type { get; set; } 
     }
 
 }

@@ -5,8 +5,9 @@
 *.jfm
 # User-specific files
 *.rsuser
-*.suo
 *.user
+*.suo
+
 *.userosscache
 *.sln.docstates
 obj/Debug/
@@ -477,3 +478,13 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# Ignore backend build artifacts
+backend.dll
+backend.exe
+backend.pdb
+
+# Ignore Visual Studio user options file
+.suo
+
+# Ignore .NET Core tool cache
+.dtbcache.v2
